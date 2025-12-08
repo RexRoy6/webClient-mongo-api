@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import api from '/src/api/apiClient.js' // import your axios instance
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -20,13 +20,8 @@ export const useAuthStore = defineStore('auth', {
       const payload = { room_number, room_key, guest_name }
 
       try {
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/auth/client/login`,
-          payload
-        )
-
+        const { data } = await api.post('/auth/client/login', payload) // use `api` here
         this.saveSession(data.access_token, 'client')
-
         return data
       } catch (error) {
         throw error.response?.data || error
@@ -37,13 +32,8 @@ export const useAuthStore = defineStore('auth', {
       const payload = { number_kitchenNumber, kitchenUser_key }
 
       try {
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/auth/kitchen/login`,
-          payload
-        )
-
+        const { data } = await api.post('/auth/kitchen/login', payload) // use `api` here
         this.saveSession(data.access_token, 'kitchen')
-
         return data
       } catch (error) {
         throw error.response?.data || error

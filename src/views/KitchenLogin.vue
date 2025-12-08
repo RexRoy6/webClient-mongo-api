@@ -1,25 +1,6 @@
-<template>
-  <div class="login-box">
-    <h2>Kitchen Login</h2>
-
-    <form @submit.prevent="submit">
-      <label>Kitchen User Number</label>
-      <input v-model="number_kitchenNumber" type="number" required />
-
-      <label>Kitchen User Key</label>
-      <input v-model="kitchenUser_key" type="number" required />
-
-      <button type="submit">Login</button>
-    </form>
-
-    <p v-if="error" class="error">{{ error }}</p>
-  </div>
-</template>
-
 <script setup>
 import { ref } from 'vue'
-import { kitchenLogin } from '../api/authService'
-import { useAuthStore } from '../store/auth'
+import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -51,6 +32,24 @@ const submit = async () => {
   }
 }
 </script>
+
+<template>
+  <div class="login-box">
+    <h2>Kitchen Login</h2>
+
+    <form @submit.prevent="submit">
+      <label>Kitchen User Number</label>
+      <input v-model="number_kitchenNumber" type="number" required />
+
+      <label>Kitchen User Key</label>
+      <input v-model="kitchenUser_key" type="number" required />
+
+      <button type="submit">Login</button>
+    </form>
+
+    <p v-if="error" class="error">{{ error }}</p>
+  </div>
+</template>
 
 <style scoped>
 .login-box {
