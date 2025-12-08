@@ -1,3 +1,16 @@
+<script setup>
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+
+const auth = useAuthStore()
+const router = useRouter()
+
+function logout() {
+  auth.logout()
+  router.push('/')
+}
+</script>
+
 <template>
   <div class="dashboard">
     <h1>Client Dashboard</h1>
@@ -9,6 +22,8 @@
       <p><strong>UUID:</strong> {{ auth.guest?.guest_uuid }}</p>
     </div>
 
+    <button @click="logout" class="logout-btn">Logout</button>
+
     <div class="box">
       <h3>Token Info:</h3>
       <p><strong>Token:</strong> {{ auth.token }}</p>
@@ -16,11 +31,6 @@
   </div>
 </template>
 
-<script setup>
-import { useAuthStore } from '@/stores/auth'
-
-const auth = useAuthStore()
-</script>
 
 <style scoped>
 .dashboard {
@@ -32,5 +42,18 @@ const auth = useAuthStore()
   padding: 15px;
   margin-bottom: 20px;
   border-radius: 6px;
+}
+
+.logout-btn {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+.logout-btn:hover {
+  background: #e60000;
 }
 </style>

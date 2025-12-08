@@ -9,19 +9,21 @@ const api = axios.create({
   timeout: 15000
 })
 
-// attach authorization header if token present
+// Attach Authorization Bearer token automatically
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('access_token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  const token = localStorage.getItem('token')   // <-- FIXED
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 }, err => Promise.reject(err))
 
-// optional: response interceptor for 401 auto-logout
+// Auto-logout on 401 responses
 api.interceptors.response.use(r => r, err => {
   if (err.response?.status === 401) {
-    // e.g. sign out user globally
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('guest_uuid')
+    localStorage.removeItem('token')
+    localStorage.removeItem('userType')
+    localStorage.removeItem('guest')
   }
   return Promise.reject(err)
 })
