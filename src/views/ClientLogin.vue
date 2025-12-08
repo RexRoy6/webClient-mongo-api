@@ -1,13 +1,15 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const auth = useAuthStore()
 
 const roomNumber = ref('')
 const roomKey = ref('')
 const guestName = ref('')
 const errorMsg = ref(null)
-
-const auth = useAuthStore()
 
 async function login() {
   errorMsg.value = null
@@ -20,6 +22,9 @@ async function login() {
     )
 
     console.log('Logged in:', response)
+
+    // ⭐ Redirect to dashboard
+    router.push('/client/dashboard')
   } catch (error) {
     errorMsg.value = error.message || 'Login failed'
   }
