@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', {
       const payload = { room_number, room_key, guest_name }
 
       try {
-        const { data } = await api.post('/auth/client/login', payload) // use `api` here
+        const { data } = await api.post('api/auth/client/login', payload) // use `api` here
         this.saveSession(data.access_token, 'client')
         return data
       } catch (error) {
@@ -32,7 +32,7 @@ export const useAuthStore = defineStore('auth', {
       const payload = { number_kitchenNumber, kitchenUser_key }
 
       try {
-        const { data } = await api.post('/auth/kitchen/login', payload) // use `api` here
+        const { data } = await api.post('api/auth/kitchen/login', payload) // use `api` here
         this.saveSession(data.access_token, 'kitchen')
         return data
       } catch (error) {
