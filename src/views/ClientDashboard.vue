@@ -5,8 +5,8 @@ import { useRouter } from 'vue-router'
 const auth = useAuthStore()
 const router = useRouter()
 
-function logout() {
-  auth.logout()
+async function logout() {
+  await auth.logoutClient()
   router.push('/')
 }
 </script>
@@ -30,6 +30,19 @@ function logout() {
     </div>
   </div>
 </template>
+
+<script setup>
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+
+const auth = useAuthStore()
+const router = useRouter()
+
+async function logout() {
+  await auth.logoutClient()
+  router.push('/')
+}
+</script>
 
 
 <style scoped>
