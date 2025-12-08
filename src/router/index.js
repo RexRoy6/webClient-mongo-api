@@ -1,31 +1,39 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-import SelectLogin from '@/views/LoginSelection.vue'
+// Views
+import LoginSelection from '@/views/LoginSelection.vue'
 import ClientLogin from '@/views/ClientLogin.vue'
 import KitchenLogin from '@/views/KitchenLogin.vue'
 import ClientDashboard from '@/views/ClientDashboard.vue'
 import KitchenDashboard from '@/views/KitchenDashboard.vue'
 
 const routes = [
-  { path: '/', component: SelectLogin },
+  // Home: Choose Client Login or Kitchen Login
+  { path: '/', name: 'select-login', component: LoginSelection },
 
-  { path: '/client-login', component: ClientLogin },
-  { path: '/kitchen-login', component: KitchenLogin },
+  // Login Pages
+  { path: '/client/login', name: 'client-login', component: ClientLogin },
+  { path: '/kitchen/login', name: 'kitchen-login', component: KitchenLogin },
 
-  // protected client area
+  // Protected Client Dashboard
   {
-    path: '/client',
+    path: '/client/dashboard',
+    name: 'client-dashboard',
     component: ClientDashboard,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, role: 'client' }
   },
 
-  // protected kitchen area
+  // Protected Kitchen Dashboard
   {
-    path: '/kitchen',
+    path: '/kitchen/dashboard',
+    name: 'kitchen-dashboard',
     component: KitchenDashboard,
-    meta: { requiresAuth: true }
-  }
+    meta: { requiresAuth: true, role: 'kitchen' }
+  },
+
+  // Fallback → redirect unknown URLs
+  { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
 const router = createRouter({
@@ -33,13 +41,15 @@ const router = createRouter({
   routes
 })
 
-// 🔐 Auth Guard
+// Middleware/Auth Guard
 router.beforeEach((to) => {
   const auth = useAuthStore()
 
   if (to.meta.requiresAuth && !auth.token) {
     return '/'
   }
+
+  return true
 })
 
 export default router
