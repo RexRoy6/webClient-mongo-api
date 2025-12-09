@@ -33,7 +33,7 @@ jobs:
       run: |
         set -e  # Stop workflow on errors
         COMMIT_SHORT_SHA=${GITHUB_SHA:0:8}
-        RELEASE_DIR="/opt/web-client/releases/${COMMIT_SHORT_SHA}"
+        RELEASE_DIR="/opt/web-mongo-client/releases/${COMMIT_SHORT_SHA}"
         
         # Create release folder
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
@@ -45,20 +45,20 @@ jobs:
 
         # Set ownership & permissions
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
-          sudo chown -R www-data:www-data /opt/web-client
-          sudo find /opt/web-client -type d -exec chmod 775 {} \;
-          sudo find /opt/web-client -type f -exec chmod 664 {} \;
+          sudo chown -R www-data:www-data /opt/web-mongo-client
+          sudo find /opt/web-mongo-client -type d -exec chmod 775 {} \;
+          sudo find /opt/web-mongo-client -type f -exec chmod 664 {} \;
         "
 
         # Activate release
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
-          cd /opt/web-client
+          cd /opt/web-mongo-client
           ln -nfs releases/${COMMIT_SHORT_SHA} current
         "
 
         # Clean old releases (keep last 5)
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
-          cd /opt/web-client
+          cd /opt/web-mongo-client
           ls -1dt releases/* 2>/dev/null | tail -n +6 | xargs rm -rf || true
         "
 
