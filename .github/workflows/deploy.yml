@@ -59,8 +59,8 @@ jobs:
         # Install dependencies and build on VPS
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
           cd ${RELEASE_DIR}
-          npm ci --only=production
-          npm run build
+          npm ci
+          npx vite build
         "
 
         # Activate release
