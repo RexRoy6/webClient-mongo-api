@@ -63,4 +63,4 @@ jobs:
         "
 
     - name: Deployment complete
-      run: echo "✅ Vue.js Client deployed successfully! Release: ${GITHUB_SHA:0:8}"
+      run: echo "✅ Vue.js Client deployed successfully! Release ${GITHUB_SHA:0:8}"
