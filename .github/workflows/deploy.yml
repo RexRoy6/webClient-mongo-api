@@ -56,6 +56,11 @@ jobs:
           find ${RELEASE_DIR} -type f -exec chmod 664 {} \;
         "
 
+         # Link .env file from parent directory
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
+        ln -nfs /opt/web-mongo-client/.env.production ${RELEASE_DIR}/.env
+        "
+
         # Install dependencies and build on VPS
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
           cd ${RELEASE_DIR}
