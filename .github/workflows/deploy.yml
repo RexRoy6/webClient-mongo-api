@@ -31,23 +31,24 @@ jobs:
 
     - name: Deploy to VPS
       run: |
-        set -e  # Stop workflow on errors
+        set -e
         COMMIT_SHORT_SHA=${GITHUB_SHA:0:8}
         RELEASE_DIR="/opt/web-mongo-client/releases/${COMMIT_SHORT_SHA}"
-        
+
         # Create release folder
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
           mkdir -p ${RELEASE_DIR}
+          chown www-data:www-data ${RELEASE_DIR}
+          chmod 775 ${RELEASE_DIR}
         "
-        
+
         # Upload built files
         rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" dist/ ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:${RELEASE_DIR}/
 
         # Set ownership & permissions
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
-          chown -R www-data:www-data /opt/web-mongo-client
-          find /opt/web-mongo-client -type d -exec chmod 775 {} \;
-          find /opt/web-mongo-client -type f -exec chmod 664 {} \;
+          find ${RELEASE_DIR} -type d -exec chmod 775 {} \;
+          find ${RELEASE_DIR} -type f -exec chmod 664 {} \;
         "
 
         # Activate release
