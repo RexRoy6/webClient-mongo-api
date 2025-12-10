@@ -183,7 +183,7 @@ const updatingStatus = ref(null)
 const filterStatus = ref('all')
 
 async function logout() {
-  auth.logout()
+  await auth.logoutKitchen()
   router.push('/')
 }
 
@@ -236,7 +236,7 @@ async function updateOrderStatus(order, newStatus) {
   updatingStatus.value = order.uuid
   
   try {
-    const response = await api.put('/api/kitchen/orders', null, {
+    const response = await api.put('/api/kitchen/ordersUpdate', null, {
       params: {
         uuid: order.uuid,
         new_status: newStatus,
