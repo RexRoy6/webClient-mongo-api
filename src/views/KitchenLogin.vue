@@ -14,21 +14,18 @@ const submit = async () => {
   error.value = null
 
   try {
-    const res = await kitchenLogin({
-      number_kitchenNumber: Number(number_kitchenNumber.value),
-      kitchenUser_key: Number(kitchenUser_key.value)
-    })
+    const data = await auth.loginKitchen(
+      Number(number_kitchenNumber.value),
+      Number(kitchenUser_key.value)
+    )
 
-    const { access_token, kitchenUser } = res.data
+    console.log('Kitchen logged in:', data)
 
-    auth.login({
-      access_token,
-      kitchenUser_uuid: kitchenUser.kitchenUser_uuid
-    })
-
-    router.push('/kitchen') // kitchen dashboard later
+    // Redirect to kitchen dashboard
+    router.push('/kitchen/dashboard')
   } catch (e) {
-    error.value = e.response?.data?.message || 'Login failed'
+    error.value = e.response?.data?.message || e.message || 'Login failed'
+    console.error('Login error:', e)
   }
 }
 </script>
