@@ -3,19 +3,13 @@
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">Kitchen Dashboard</h1>
       
+
       <!-- Kitchen User Info -->
       <div v-if="auth.kitchenUser" class="text-right">
         <div class="text-sm text-gray-600">Logged in as:</div>
         <div class="font-semibold">{{ auth.kitchenUser.name_kitchenUser }}</div>
       </div>
       
-      <button 
-        @click="logout" 
-        class="btn btn-danger btn-md"
-      >
-        Logout
-      </button>
-    </div>
 
     <!-- Orders Section -->
     <div class="card mb-6">
@@ -218,6 +212,16 @@
         </button>
       </div>
     </div>
+
+      
+      <button 
+        @click="logout" 
+        class="btn btn-danger btn-md"
+      >
+        Logout
+      </button>
+    </div>
+
   </div>
 </template>
 
