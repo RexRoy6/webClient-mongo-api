@@ -24,6 +24,13 @@ const creatingOrder = ref(false)
 const orderSuccess = ref(null)
 const orderError = ref(null)
 
+// Cancel order state
+const cancelingOrder = ref(null)
+const cancelNote = ref('')
+const cancelError = ref(null)
+const showCancelModal = ref(false)
+const orderToCancel = ref(null)
+
 async function logout() {
   await auth.logoutClient()
   router.push('/')
@@ -159,6 +166,73 @@ async function fetchOrders() {
   }
 }
 
+// Cancel order functions
+function openCancelModal(order) {
+  orderToCancel.value = order
+  cancelNote.value = ''
+  cancelError.value = null
+  showCancelModal.value = true
+}
+
+function closeCancelModal() {
+  showCancelModal.value = false
+  orderToCancel.value = null
+  cancelNote.value = ''
+  cancelError.value = null
+}
+
+async function confirmCancelOrder() {
+  if (!orderToCancel.value || !auth.guest?.guest_uuid) {
+    cancelError.value = 'Cannot cancel order. Missing information.'
+    return
+  }
+
+  cancelingOrder.value = orderToCancel.value.uuid
+  cancelError.value = null
+
+  try {
+    // Using PUT method with query parameters
+    const response = await api.put('/api/hotel/orders', null, {
+      params: {
+        uuid: orderToCancel.value.uuid,
+        notes: cancelNote.value.trim() || 'Cancelled by guest',
+        guest_uuid: auth.guest.guest_uuid
+      }
+    })
+    
+    // Update the order status locally
+    const orderIndex = orders.value.findIndex(o => o.uuid === orderToCancel.value.uuid)
+    if (orderIndex !== -1) {
+      orders.value[orderIndex].current_status = 'cancelled'
+      // Add to status history
+      if (!orders.value[orderIndex].status_history) {
+        orders.value[orderIndex].status_history = []
+      }
+      orders.value[orderIndex].status_history.push({
+        status: 'cancelled',
+        updated_at: new Date().toISOString(),
+        updated_by: auth.guest.guest_uuid,
+        notes: cancelNote.value.trim() || 'Cancelled by guest'
+      })
+    }
+    
+    closeCancelModal()
+  } catch (err) {
+    cancelError.value = err.response?.data?.message || 'Failed to cancel order'
+    console.error('Error canceling order:', err)
+  } finally {
+    cancelingOrder.value = null
+  }
+}
+
+// Check if order can be cancelled
+function canCancelOrder(order) {
+  // Only allow cancelling orders that are not already cancelled or delivered
+  return order.current_status !== 'cancelled' && 
+         order.current_status !== 'delivered' &&
+         order.current_status !== 'ready' // You might want to allow cancellation even for ready orders
+}
+
 // Get status color
 function getStatusColor(status) {
   const colors = {
@@ -183,14 +257,14 @@ onMounted(() => {
     <h1>Client Dashboard</h1>
 
     <!-- Guest Info -->
-    <div class="box">
+    <div class="dashboard-box">
       <h3>Logged in as:</h3>
       <p><strong>Name:</strong> {{ auth.guest?.guest_name }}</p>
       <p><strong>Room Number:</strong> {{ auth.guest?.room_number }}</p>
       <p><strong>UUID:</strong> {{ auth.guest?.guest_uuid }}</p>
     </div>
 
-    <button @click="logout" class="logout-btn">Logout</button>
+    <button @click="logout" class="dashboard-btn logout-btn">Logout</button>
 
     <!-- Cart Sidebar -->
     <div class="cart-sidebar" v-if="cart.length > 0">
@@ -251,7 +325,7 @@ onMounted(() => {
     </div>
 
     <!-- Menu Section -->
-    <div class="box">
+    <div class="dashboard-box">
       <h3>Menu: {{ menuKey }}</h3>
       
       <!-- Loading State -->
@@ -292,7 +366,7 @@ onMounted(() => {
     </div>
 
     <!-- Order History -->
-    <div class="box">
+    <div class="dashboard-box">
       <div class="orders-header">
         <h3>Your Orders</h3>
         <button @click="fetchOrders" :disabled="loadingOrders" class="refresh-orders-btn">
@@ -338,6 +412,17 @@ onMounted(() => {
             </div>
           </div>
           
+          <!-- Cancel Button -->
+          <div v-if="canCancelOrder(order)" class="cancel-order-section">
+            <button 
+              @click="openCancelModal(order)" 
+              class="cancel-order-btn"
+              :disabled="cancelingOrder === order.uuid"
+            >
+              {{ cancelingOrder === order.uuid ? 'Cancelling...' : 'Cancel Order' }}
+            </button>
+          </div>
+          
           <div v-if="order.status_history && order.status_history.length > 0" class="order-history">
             <h4>Status History:</h4>
             <div v-for="history in order.status_history" :key="history.updated_at" class="history-item">
@@ -349,476 +434,46 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Cancel Order Modal -->
+    <div v-if="showCancelModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Cancel Order</h3>
+          <button @click="closeCancelModal" class="modal-close-btn">×</button>
+        </div>
+        
+        <div class="modal-content">
+          <p>Are you sure you want to cancel order <strong>#{{ orderToCancel?.uuid?.substring(0, 8) }}</strong>?</p>
+          <p><strong>Status:</strong> {{ orderToCancel?.current_status }}</p>
+          <p><strong>Total:</strong> ${{ orderToCancel?.solicitud?.total }} MXN</p>
+          
+          <div class="cancel-note">
+            <label for="cancelNote">Reason for cancellation (optional):</label>
+            <textarea 
+              id="cancelNote"
+              v-model="cancelNote" 
+              placeholder="E.g. Changed my mind, too long wait time, etc."
+              rows="3"
+            ></textarea>
+          </div>
+          
+          <div v-if="cancelError" class="error-message">
+            {{ cancelError }}
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button @click="closeCancelModal" class="modal-btn cancel-btn">No, Keep Order</button>
+          <button 
+            @click="confirmCancelOrder" 
+            :disabled="cancelingOrder"
+            class="modal-btn confirm-cancel-btn"
+          >
+            {{ cancelingOrder ? 'Cancelling...' : 'Yes, Cancel Order' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.dashboard {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 25px;
-}
-
-.box {
-  background: #f4f4f4;
-  padding: 20px;
-  margin-bottom: 25px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  grid-column: 1;
-}
-
-.cart-sidebar {
-  grid-column: 2;
-  grid-row: 1 / span 3;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  position: sticky;
-  top: 20px;
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
-}
-
-.logout-btn {
-  background: #ff4d4d;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  cursor: pointer;
-  border-radius: 5px;
-  margin-bottom: 25px;
-  font-size: 16px;
-  font-weight: bold;
-  grid-column: 1;
-}
-.logout-btn:hover {
-  background: #e60000;
-}
-
-/* Cart Styles */
-.cart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.clear-cart-btn {
-  background: #e53e3e;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.clear-cart-btn:hover {
-  background: #c53030;
-}
-
-.cart-items {
-  margin-bottom: 15px;
-}
-
-.cart-item {
-  background: #f8f9fa;
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.cart-item-info h4 {
-  margin: 0 0 5px 0;
-  font-size: 14px;
-}
-
-.item-price {
-  margin: 0;
-  color: #666;
-  font-size: 12px;
-}
-
-.item-total {
-  margin: 0;
-  font-weight: bold;
-  color: #2d3748;
-}
-
-.cart-item-actions {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.qty-btn {
-  background: #e2e8f0;
-  border: none;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.qty-btn:hover {
-  background: #cbd5e0;
-}
-
-.qty-display {
-  min-width: 30px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.remove-btn {
-  background: #fed7d7;
-  color: #9b2c2c;
-  border: none;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  cursor: pointer;
-  margin-left: 5px;
-}
-
-.remove-btn:hover {
-  background: #feb2b2;
-}
-
-.cart-total {
-  text-align: right;
-  font-size: 1.2em;
-  margin: 15px 0;
-  padding-top: 15px;
-  border-top: 2px solid #ddd;
-}
-
-.order-note textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  resize: vertical;
-  font-family: inherit;
-  margin-bottom: 15px;
-}
-
-.checkout-btn {
-  width: 100%;
-  background: #38a169;
-  color: white;
-  border: none;
-  padding: 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.checkout-btn:hover:not(:disabled) {
-  background: #2f855a;
-}
-
-.checkout-btn:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-}
-
-.error-message {
-  background: #fed7d7;
-  color: #9b2c2c;
-  padding: 10px;
-  border-radius: 5px;
-  margin-top: 15px;
-  font-size: 14px;
-}
-
-.success-message {
-  background: #c6f6d5;
-  color: #276749;
-  padding: 15px;
-  border-radius: 5px;
-  margin-top: 15px;
-}
-
-.success-message h4 {
-  margin-top: 0;
-}
-
-/* Orders History */
-.orders-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.refresh-orders-btn {
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.refresh-orders-btn:hover:not(:disabled) {
-  background: #3182ce;
-}
-
-.refresh-orders-btn:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-}
-
-.no-orders {
-  text-align: center;
-  padding: 30px;
-  color: #718096;
-}
-
-.order-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 15px;
-}
-
-.order-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
-}
-
-.order-id {
-  display: flex;
-  flex-direction: column;
-}
-
-.order-date {
-  font-size: 12px;
-  color: #718096;
-  margin-top: 2px;
-}
-
-.status-badge {
-  color: white;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.order-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 15px;
-}
-
-.order-items h4,
-.order-history h4 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.order-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 0;
-  border-bottom: 1px dashed #e2e8f0;
-  font-size: 13px;
-}
-
-.order-summary p {
-  margin: 5px 0;
-  font-size: 13px;
-}
-
-.order-history {
-  border-top: 1px solid #e2e8f0;
-  padding-top: 15px;
-}
-
-.history-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 0;
-  font-size: 12px;
-}
-
-.history-status {
-  font-weight: bold;
-  min-width: 80px;
-}
-
-.history-time {
-  color: #718096;
-  flex-grow: 1;
-  padding: 0 10px;
-}
-
-.history-notes {
-  color: #4a5568;
-  font-style: italic;
-}
-
-/* Menu Styles (same as before) */
-.menu-header {
-  background: white;
-  padding: 15px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-}
-
-.menu-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.menu-item {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #ddd;
-  transition: transform 0.2s;
-}
-
-.menu-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.item-info h4 {
-  margin: 0 0 5px 0;
-  text-transform: capitalize;
-  color: #333;
-}
-
-.item-info .price {
-  margin: 0;
-  color: #2c5282;
-  font-weight: bold;
-  font-size: 1.1em;
-}
-
-.add-btn {
-  background: #2d3748;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.add-btn:hover {
-  background: #4a5568;
-}
-
-.refresh-btn {
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.refresh-btn:hover:not(:disabled) {
-  background: #3182ce;
-}
-
-.refresh-btn:disabled {
-  background: #a0aec0;
-  cursor: not-allowed;
-}
-
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: #4a5568;
-}
-
-.error {
-  background: #fed7d7;
-  color: #9b2c2c;
-  padding: 15px;
-  border-radius: 5px;
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.retry-btn {
-  background: #e53e3e;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.retry-btn:hover {
-  background: #c53030;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-  }
-  
-  .cart-sidebar {
-    grid-column: 1;
-    grid-row: auto;
-    position: static;
-    max-height: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .menu-items {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
-  
-  .order-details {
-    grid-template-columns: 1fr;
-  }
-  
-  .menu-item,
-  .cart-item {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .item-actions,
-  .cart-item-actions {
-    margin-top: 10px;
-  }
-}
-</style>
