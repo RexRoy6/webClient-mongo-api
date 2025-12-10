@@ -9,9 +9,11 @@ const auth = useAuthStore()
 const number_kitchenNumber = ref('')
 const kitchenUser_key = ref('')
 const error = ref(null)
+const loading = ref(false)
 
 const submit = async () => {
   error.value = null
+  loading.value = true
 
   try {
     const data = await auth.loginKitchen(
@@ -26,55 +28,83 @@ const submit = async () => {
   } catch (e) {
     error.value = e.response?.data?.message || e.message || 'Login failed'
     console.error('Login error:', e)
+  } finally {
+    loading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="login-box">
-    <h2>Kitchen Login</h2>
+  <div class="login-container">
+    <div class="login-card">
+      <!-- Header -->
+      <div class="login-header">
+        <h1>Kitchen Login</h1>
+        <p class="login-subtitle">Enter your kitchen credentials</p>
+      </div>
 
-    <form @submit.prevent="submit">
-      <label>Kitchen User Number</label>
-      <input v-model="number_kitchenNumber" type="number" required />
+      <!-- Error Message -->
+      <div v-if="error" class="error-box">
+        <span class="error-icon">⚠️</span>
+        {{ error }}
+      </div>
 
-      <label>Kitchen User Key</label>
-      <input v-model="kitchenUser_key" type="number" required />
+      <!-- Login Form -->
+      <form @submit.prevent="submit" class="login-form">
+        <!-- Kitchen User Number -->
+        <div class="login-form-group">
+          <label for="kitchenNumber">Kitchen User Number</label>
+          <input 
+            id="kitchenNumber"
+            v-model="number_kitchenNumber" 
+            type="number" 
+            placeholder="e.g., 1"
+            required
+            autocomplete="off"
+            inputmode="numeric"
+            class="login-form-input"
+            :disabled="loading"
+          />
+          <p class="input-hint">Your assigned kitchen number</p>
+        </div>
 
-      <button type="submit">Login</button>
-    </form>
+        <!-- Kitchen User Key -->
+        <div class="login-form-group">
+          <label for="kitchenKey">Kitchen User Key</label>
+          <input 
+            id="kitchenKey"
+            v-model="kitchenUser_key" 
+            type="number" 
+            placeholder="e.g., 456"
+            required
+            autocomplete="off"
+            inputmode="numeric"
+            class="login-form-input"
+            :disabled="loading"
+          />
+          <p class="input-hint">Your security key/password</p>
+        </div>
 
-    <p v-if="error" class="error">{{ error }}</p>
+        <!-- Login Button -->
+        <button 
+          type="submit" 
+          class="login-btn kitchen-login-btn"
+          :disabled="loading"
+        >
+          <span v-if="loading" class="login-spinner"></span>
+          <span v-else>
+            <span class="btn-icon">👨‍🍳</span>
+            Log In to Kitchen
+          </span>
+        </button>
+      </form>
+
+      <!-- Back Link -->
+      <router-link to="/" class="back-link">
+        ← Back to selection
+      </router-link>
+    </div>
   </div>
 </template>
 
-<style scoped>
-.login-box {
-  width: 300px;
-  margin: 60px auto;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-button {
-  background: black;
-  color: white;
-  padding: 12px;
-  border-radius: 6px;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.error {
-  color: red;
-  margin-top: 10px;
-}
-</style>
+<!-- No <style> section needed - using main.css -->

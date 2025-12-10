@@ -1281,5 +1281,38 @@ body {
     transform: translateY(0);
   }
 }
+/* ===== KITCHEN LOGIN SPECIFIC STYLES ===== */
+
+.kitchen-login-btn {
+  background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%) !important;
+}
+
+.kitchen-login-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dd6b20 0%, #c05621 100%) !important;
+}
+
+.input-hint {
+  margin: 6px 0 0 0;
+  color: #718096;
+  font-size: 13px;
+  font-style: italic;
+  text-align: left;
+}
+
+.btn-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+/* Kitchen-specific dark mode */
+@media (prefers-color-scheme: dark) {
+  .kitchen-login-btn {
+    box-shadow: 0 4px 15px rgba(237, 137, 54, 0.4) !important;
+  }
+  
+  .kitchen-login-btn:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(237, 137, 54, 0.6) !important;
+  }
+}
 
 }
