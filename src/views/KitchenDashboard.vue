@@ -35,49 +35,56 @@
       <div v-if="orders.length > 0 && !loading" class="orders-list">
         <div class="order-filters">
           <div class="filter-buttons">
-            <button 
-              @click="filterStatus = 'all'" 
-              :class="{ active: filterStatus === 'all' }"
-              class="filter-btn"
-            >
-              All ({{ orders.length }})
-            </button>
-            <button 
-              @click="filterStatus = 'created'" 
-              :class="{ active: filterStatus === 'created' }"
-              class="filter-btn"
-            >
-              Created ({{ orders.filter(o => o.current_status === 'created').length }})
-            </button>
-            <button 
-              @click="filterStatus = 'preparing'" 
-              :class="{ active: filterStatus === 'preparing' }"
-              class="filter-btn"
-            >
-              Preparing ({{ orders.filter(o => o.current_status === 'preparing').length }})
-            </button>
-            <button 
-              @click="filterStatus = 'ready'" 
-              :class="{ active: filterStatus === 'ready' }"
-              class="filter-btn"
-            >
-              Ready ({{ orders.filter(o => o.current_status === 'ready').length }})
-            </button>
-            <button 
-              @click="filterStatus = 'delivered'" 
-              :class="{ active: filterStatus === 'delivered' }"
-              class="filter-btn"
-            >
-              Delivered ({{ orders.filter(o => o.current_status === 'delivered').length }})
-            </button>
-            <button 
-              @click="filterStatus = 'cancelled'" 
-              :class="{ active: filterStatus === 'cancelled' }"
-              class="filter-btn"
-            >
-              Cancelled ({{ orders.filter(o => o.current_status === 'cancelled').length }})
-            </button>
-          </div>
+  <button 
+    @click="filterStatus = 'all'" 
+    :class="{ active: filterStatus === 'all' }"
+    class="filter-btn"
+  >
+    All ({{ orders.length }})
+  </button>
+  <button 
+    @click="filterStatus = 'created'" 
+    :class="{ active: filterStatus === 'created' }"
+    class="filter-btn"
+  >
+    Created ({{ orders.filter(o => o.current_status === 'created').length }})
+  </button>
+  <button 
+    @click="filterStatus = 'pending'" 
+    :class="{ active: filterStatus === 'pending' }"
+    class="filter-btn"
+  >
+    Pending ({{ orders.filter(o => o.current_status === 'pending').length }})
+  </button>
+  <button 
+    @click="filterStatus = 'preparing'" 
+    :class="{ active: filterStatus === 'preparing' }"
+    class="filter-btn"
+  >
+    Preparing ({{ orders.filter(o => o.current_status === 'preparing').length }})
+  </button>
+  <button 
+    @click="filterStatus = 'ready'" 
+    :class="{ active: filterStatus === 'ready' }"
+    class="filter-btn"
+  >
+    Ready ({{ orders.filter(o => o.current_status === 'ready').length }})
+  </button>
+  <button 
+    @click="filterStatus = 'delivered'" 
+    :class="{ active: filterStatus === 'delivered' }"
+    class="filter-btn"
+  >
+    Delivered ({{ orders.filter(o => o.current_status === 'delivered').length }})
+  </button>
+  <button 
+    @click="filterStatus = 'cancelled'" 
+    :class="{ active: filterStatus === 'cancelled' }"
+    class="filter-btn"
+  >
+    Cancelled ({{ orders.filter(o => o.current_status === 'cancelled').length }})
+  </button>
+</div>
         </div>
         
         <div class="filtered-orders">
@@ -114,36 +121,58 @@
                 <p><strong>Created by:</strong> {{ order.created_by.substring(0, 8) }}...</p>
               </div>
             </div>
-            
             <!-- Status Update Buttons -->
-            <div class="status-actions" v-if="order.current_status !== 'cancelled' && order.current_status !== 'delivered'">
-              <button 
-                @click="updateOrderStatus(order, 'preparing')" 
-                :disabled="updatingStatus === order.uuid"
-                class="status-btn preparing-btn"
-                v-if="order.current_status === 'created'"
-              >
-                Mark as Preparing
-              </button>
-              
-              <button 
-                @click="updateOrderStatus(order, 'ready')" 
-                :disabled="updatingStatus === order.uuid"
-                class="status-btn ready-btn"
-                v-if="order.current_status === 'preparing' || order.current_status === 'created'"
-              >
-                Mark as Ready
-              </button>
-              
-              <button 
-                @click="updateOrderStatus(order, 'delivered')" 
-                :disabled="updatingStatus === order.uuid"
-                class="status-btn delivered-btn"
-                v-if="order.current_status === 'ready'"
-              >
-                Mark as Delivered
-              </button>
-            </div>
+<div class="status-actions" v-if="order.current_status !== 'cancelled' && order.current_status !== 'delivered'">
+  <!-- Show Pending button for created orders -->
+  <button 
+    v-if="order.current_status === 'created'"
+    @click="updateOrderStatus(order, 'pending')" 
+    :disabled="updatingStatus === order.uuid"
+    class="status-btn pending-btn"
+  >
+    Mark as Pending
+  </button>
+  
+  <!-- Show Preparing button for created or pending orders -->
+  <button 
+    v-if="order.current_status === 'created' || order.current_status === 'pending'"
+    @click="updateOrderStatus(order, 'preparing')" 
+    :disabled="updatingStatus === order.uuid"
+    class="status-btn preparing-btn"
+  >
+    Mark as Preparing
+  </button>
+  
+  <!-- Show Ready button for preparing orders -->
+  <button 
+    v-if="order.current_status === 'preparing'"
+    @click="updateOrderStatus(order, 'ready')" 
+    :disabled="updatingStatus === order.uuid"
+    class="status-btn ready-btn"
+  >
+    Mark as Ready
+  </button>
+  
+  <!-- Show Delivered button for ready orders -->
+  <button 
+    v-if="order.current_status === 'ready'"
+    @click="updateOrderStatus(order, 'delivered')" 
+    :disabled="updatingStatus === order.uuid"
+    class="status-btn delivered-btn"
+  >
+    Mark as Delivered
+  </button>
+  
+  <!-- Cancel button for created, pending, or preparing orders -->
+  <button 
+    v-if="order.current_status === 'created' || order.current_status === 'pending' || order.current_status === 'preparing'"
+    @click="updateOrderStatus(order, 'cancelled')" 
+    :disabled="updatingStatus === order.uuid"
+    class="status-btn cancel-btn"
+  >
+    Cancel Order
+  </button>
+</div>
             
             <div v-if="order.status_history && order.status_history.length > 0" class="order-history">
               <h4>Status History:</h4>
@@ -232,14 +261,18 @@ async function fetchOrders() {
   }
 }
 
+// Update the status mapping and transitions
 async function updateOrderStatus(order, newStatus) {
   updatingStatus.value = order.uuid
   
   try {
+    // Map button status to API status if needed
+    const apiStatus = newStatus
+    
     const response = await api.put('/api/kitchen/ordersUpdate', null, {
       params: {
         uuid: order.uuid,
-        new_status: newStatus,
+        status: apiStatus, // Changed from 'new_status' to 'status'
         notes: `Status changed to ${newStatus} by kitchen`
       }
     })
@@ -276,6 +309,10 @@ async function updateOrderStatus(order, newStatus) {
         router.push('/kitchen/login')
       } else if (status === 404) {
         errorMessage = 'Order not found.'
+      } else if (status === 422) {
+        // Handle validation errors
+        const errors = err.response.data.errors || {}
+        errorMessage = Object.values(errors).flat().join(', ') || 'Invalid data sent to server'
       } else {
         errorMessage = err.response?.data?.message || `Error ${status}: ${errorMessage}`
       }
@@ -292,6 +329,20 @@ async function updateOrderStatus(order, newStatus) {
   }
 }
 
+// Helper function to get available next statuses based on current status
+function getNextAvailableStatuses(currentStatus) {
+  const transitions = {
+    'created': ['pending', 'preparing', 'cancelled'],
+    'pending': ['preparing', 'cancelled'],
+    'preparing': ['ready', 'cancelled'],
+    'ready': ['delivered'],
+    'delivered': [], // No further transitions
+    'cancelled': []  // No further transitions
+  }
+  
+  return transitions[currentStatus] || []
+}
+
 // Filter orders by status
 const filteredOrders = computed(() => {
   if (filterStatus.value === 'all') {
@@ -304,6 +355,7 @@ const filteredOrders = computed(() => {
 function getStatusColor(status) {
   const colors = {
     'created': '#4299e1',     // blue
+    'pending': '#d69e2e',     // yellow/orange
     'preparing': '#ed8936',   // orange
     'ready': '#38a169',       // green
     'delivered': '#9f7aea',   // purple
@@ -437,6 +489,21 @@ onMounted(() => {
   color: #4a5568;
   font-style: italic;
 }
+.pending-btn {
+  background: #d69e2e; /* Yellow/orange for pending */
+}
+
+.pending-btn:hover:not(:disabled) {
+  background: #b7791f;
+}
+
+.cancel-btn {
+  background: #e53e3e; /* Red for cancel */
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: #c53030;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -461,4 +528,5 @@ onMounted(() => {
     gap: 2px;
   }
 }
+
 </style>
