@@ -24,6 +24,13 @@ const creatingOrder = ref(false)
 const orderSuccess = ref(null)
 const orderError = ref(null)
 
+// Cancel order state
+const cancelingOrder = ref(null)
+const cancelNote = ref('')
+const cancelError = ref(null)
+const showCancelModal = ref(false)
+const orderToCancel = ref(null)
+
 async function logout() {
   await auth.logoutClient()
   router.push('/')
@@ -157,6 +164,73 @@ async function fetchOrders() {
   } finally {
     loadingOrders.value = false
   }
+}
+
+// Cancel order functions
+function openCancelModal(order) {
+  orderToCancel.value = order
+  cancelNote.value = ''
+  cancelError.value = null
+  showCancelModal.value = true
+}
+
+function closeCancelModal() {
+  showCancelModal.value = false
+  orderToCancel.value = null
+  cancelNote.value = ''
+  cancelError.value = null
+}
+
+async function confirmCancelOrder() {
+  if (!orderToCancel.value || !auth.guest?.guest_uuid) {
+    cancelError.value = 'Cannot cancel order. Missing information.'
+    return
+  }
+
+  cancelingOrder.value = orderToCancel.value.uuid
+  cancelError.value = null
+
+  try {
+    // Using PUT method with query parameters
+    const response = await api.put('/api/hotel/orders', null, {
+      params: {
+        uuid: orderToCancel.value.uuid,
+        notes: cancelNote.value.trim() || 'Cancelled by guest',
+        guest_uuid: auth.guest.guest_uuid
+      }
+    })
+    
+    // Update the order status locally
+    const orderIndex = orders.value.findIndex(o => o.uuid === orderToCancel.value.uuid)
+    if (orderIndex !== -1) {
+      orders.value[orderIndex].current_status = 'cancelled'
+      // Add to status history
+      if (!orders.value[orderIndex].status_history) {
+        orders.value[orderIndex].status_history = []
+      }
+      orders.value[orderIndex].status_history.push({
+        status: 'cancelled',
+        updated_at: new Date().toISOString(),
+        updated_by: auth.guest.guest_uuid,
+        notes: cancelNote.value.trim() || 'Cancelled by guest'
+      })
+    }
+    
+    closeCancelModal()
+  } catch (err) {
+    cancelError.value = err.response?.data?.message || 'Failed to cancel order'
+    console.error('Error canceling order:', err)
+  } finally {
+    cancelingOrder.value = null
+  }
+}
+
+// Check if order can be cancelled
+function canCancelOrder(order) {
+  // Only allow cancelling orders that are not already cancelled or delivered
+  return order.current_status !== 'cancelled' && 
+         order.current_status !== 'delivered' &&
+         order.current_status !== 'ready' // You might want to allow cancellation even for ready orders
 }
 
 // Get status color
@@ -338,6 +412,17 @@ onMounted(() => {
             </div>
           </div>
           
+          <!-- Cancel Button -->
+          <div v-if="canCancelOrder(order)" class="cancel-order-section">
+            <button 
+              @click="openCancelModal(order)" 
+              class="cancel-order-btn"
+              :disabled="cancelingOrder === order.uuid"
+            >
+              {{ cancelingOrder === order.uuid ? 'Cancelling...' : 'Cancel Order' }}
+            </button>
+          </div>
+          
           <div v-if="order.status_history && order.status_history.length > 0" class="order-history">
             <h4>Status History:</h4>
             <div v-for="history in order.status_history" :key="history.updated_at" class="history-item">
@@ -346,6 +431,47 @@ onMounted(() => {
               <span v-if="history.notes" class="history-notes">{{ history.notes }}</span>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancel Order Modal -->
+    <div v-if="showCancelModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Cancel Order</h3>
+          <button @click="closeCancelModal" class="modal-close-btn">×</button>
+        </div>
+        
+        <div class="modal-content">
+          <p>Are you sure you want to cancel order <strong>#{{ orderToCancel?.uuid?.substring(0, 8) }}</strong>?</p>
+          <p><strong>Status:</strong> {{ orderToCancel?.current_status }}</p>
+          <p><strong>Total:</strong> ${{ orderToCancel?.solicitud?.total }} MXN</p>
+          
+          <div class="cancel-note">
+            <label for="cancelNote">Reason for cancellation (optional):</label>
+            <textarea 
+              id="cancelNote"
+              v-model="cancelNote" 
+              placeholder="E.g. Changed my mind, too long wait time, etc."
+              rows="3"
+            ></textarea>
+          </div>
+          
+          <div v-if="cancelError" class="error-message">
+            {{ cancelError }}
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button @click="closeCancelModal" class="modal-btn cancel-btn">No, Keep Order</button>
+          <button 
+            @click="confirmCancelOrder" 
+            :disabled="cancelingOrder"
+            class="modal-btn confirm-cancel-btn"
+          >
+            {{ cancelingOrder ? 'Cancelling...' : 'Yes, Cancel Order' }}
+          </button>
         </div>
       </div>
     </div>
