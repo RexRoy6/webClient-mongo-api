@@ -3,13 +3,12 @@
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">Kitchen Dashboard</h1>
       
-
-      <!-- Kitchen User Info -->
+      <!-- Kitchen User Info - MOVED TO TOP RIGHT -->
       <div v-if="auth.kitchenUser" class="text-right">
         <div class="text-sm text-gray-600">Logged in as:</div>
         <div class="font-semibold">{{ auth.kitchenUser.name_kitchenUser }}</div>
       </div>
-      
+    </div> <!-- Close the flex container here -->
 
     <!-- Orders Section -->
     <div class="card mb-6">
@@ -211,9 +210,10 @@
           Refresh
         </button>
       </div>
-    </div>
+    </div> <!-- Close the card -->
 
-      
+    <!-- Logout Button - MOVED TO BOTTOM -->
+    <div class="text-center mt-8">
       <button 
         @click="logout" 
         class="btn btn-danger btn-md"
@@ -221,8 +221,7 @@
         Logout
       </button>
     </div>
-
-  </div>
+  </div> <!-- Close the main container -->
 </template>
 
 <script setup>
