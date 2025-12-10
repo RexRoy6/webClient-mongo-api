@@ -41,12 +41,27 @@ const router = createRouter({
   routes
 })
 
-// Middleware/Auth Guard
+// Enhanced Middleware/Auth Guard with role checking
 router.beforeEach((to) => {
   const auth = useAuthStore()
 
-  if (to.meta.requiresAuth && !auth.token) {
-    return '/'
+  // Check if route requires authentication
+  if (to.meta.requiresAuth) {
+    // User not logged in
+    if (!auth.token) {
+      return '/'
+    }
+    
+    // Check role if specified
+    if (to.meta.role && auth.userType !== to.meta.role) {
+      // Redirect to appropriate dashboard based on user type
+      if (auth.userType === 'client') {
+        return '/client/dashboard'
+      } else if (auth.userType === 'kitchen') {
+        return '/kitchen/dashboard'
+      }
+      return '/'
+    }
   }
 
   return true

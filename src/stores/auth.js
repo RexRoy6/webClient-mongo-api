@@ -5,11 +5,11 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token') || null,
     userType: localStorage.getItem('userType') || null,
-    guest: JSON.parse(localStorage.getItem('guest')) || null
+    guest: JSON.parse(localStorage.getItem('guest')) || null,
+    kitchenUser: JSON.parse(localStorage.getItem('kitchenUser')) || null
   }),
 
   actions: {
-
     /* -------------------------------------------------------
      * Save session (token + user type)
      * ----------------------------------------------------- */
@@ -38,8 +38,43 @@ export const useAuthStore = defineStore('auth', {
           ...data.guest,
           room_key
         }
+        
+        // Clear kitchen user if exists
+        this.kitchenUser = null
+        localStorage.removeItem('kitchenUser')
 
         localStorage.setItem('guest', JSON.stringify(this.guest))
+
+        return data
+      } catch (error) {
+        throw error.response?.data || error
+      }
+    },
+
+    /* -------------------------------------------------------
+     * KITCHEN LOGIN
+     * Stores kitchen user details after login
+     * ----------------------------------------------------- */
+    async loginKitchen(number_kitchenNumber, kitchenUser_key) {
+      const payload = { number_kitchenNumber, kitchenUser_key }
+
+      try {
+        const { data } = await api.post('api/auth/kitchen/login', payload)
+
+        this.saveSession(data.access_token, 'kitchen')
+
+        // Store kitchen user details
+        this.kitchenUser = {
+          ...data.guest, // Note: API returns "guest" object but contains kitchen user data
+          kitchenUser_uuid: data.guest.kitchenUser_uuid,
+          name_kitchenUser: data.guest.name_kitchenUser
+        }
+        
+        // Clear guest if exists
+        this.guest = null
+        localStorage.removeItem('guest')
+
+        localStorage.setItem('kitchenUser', JSON.stringify(this.kitchenUser))
 
         return data
       } catch (error) {
@@ -69,16 +104,42 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /* -------------------------------------------------------
-     * LOCAL LOGOUT
+     * LOCAL LOGOUT (for both client and kitchen)
      * ----------------------------------------------------- */
     logout() {
       this.token = null
       this.userType = null
       this.guest = null
+      this.kitchenUser = null
 
       localStorage.removeItem('token')
       localStorage.removeItem('userType')
       localStorage.removeItem('guest')
+      localStorage.removeItem('kitchenUser')
+    },
+
+    /* -------------------------------------------------------
+     * GET CURRENT USER (helper method)
+     * ----------------------------------------------------- */
+    getCurrentUser() {
+      if (this.userType === 'client') {
+        return this.guest
+      } else if (this.userType === 'kitchen') {
+        return this.kitchenUser
+      }
+      return null
+    },
+
+    /* -------------------------------------------------------
+     * GET USER UUID (helper method)
+     * ----------------------------------------------------- */
+    getUserUuid() {
+      if (this.userType === 'client' && this.guest) {
+        return this.guest.guest_uuid
+      } else if (this.userType === 'kitchen' && this.kitchenUser) {
+        return this.kitchenUser.kitchenUser_uuid
+      }
+      return null
     }
   }
 })
