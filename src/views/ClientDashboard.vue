@@ -2,19 +2,76 @@
   <div class="dashboard container mx-auto p-4">
     <h1 class="text-3xl font-bold mb-6 text-gray-800">Client Dashboard</h1>
 
-    <!-- Guest Info -->
-    <div class="dashboard-box card mb-6">
-      <h3 class="text-xl font-semibold mb-4 text-gray-700">Logged in as:</h3>
-      <div class="space-y-2">
-        <p><strong class="text-gray-600">Name:</strong> {{ auth.guest?.guest_name }}</p>
-        <p><strong class="text-gray-600">Room Number:</strong> {{ auth.guest?.room_number }}</p>
-        <p><strong class="text-gray-600">UUID:</strong> {{ auth.guest?.guest_uuid }}</p>
+   <!-- Order History -->
+    <div class="dashboard-box card">
+      <div class="orders-header flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold">Your Orders</h3>
+        <button @click="fetchOrders" :disabled="loadingOrders" class="btn btn-primary btn-sm">
+          {{ loadingOrders ? 'Refreshing...' : 'Refresh' }}
+        </button>
       </div>
+      
+      <div v-if="loadingOrders" class="loading text-center py-8 text-gray-500">
+        Loading orders...
+      </div>
+      
+      <div v-else-if="orders.length === 0" class="no-orders text-center py-8 text-gray-500">
+        <p>No orders yet. Start by adding items to your cart!</p>
+      </div>
+      
+      <div v-else class="orders-list space-y-4">
+        <div v-for="order in orders" :key="order.uuid" class="order-card card">
+          <div class="order-header mb-4">
+            <div class="order-id">
+              <strong class="text-lg">Order #{{ order.uuid.substring(0, 8) }}</strong>
+              <p class="order-date text-sm text-gray-500 mt-1">{{ new Date(order.created_at).toLocaleString() }}</p>
+            </div>
+            <div class="order-status">
+              <span class="status-badge" :class="`status-${order.current_status}`">
+                {{ order.current_status }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="order-details grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div class="order-items">
+              <h4 class="font-semibold mb-2">Items:</h4>
+              <div v-for="item in order.solicitud.items" :key="item.name" class="order-item flex justify-between py-2 border-b border-gray-200">
+                <span>{{ item.name }} × {{ item.qty }}</span>
+                <span class="font-medium">${{ item.line_total }} MXN</span>
+              </div>
+            </div>
+            
+            <div class="order-summary">
+              <p class="mb-2"><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
+              <p v-if="order.solicitud.note" class="mb-2"><strong>Note:</strong> {{ order.solicitud.note }}</p>
+              <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
+            </div>
+          </div>
+          
+          <!-- Cancel Button -->
+          <div v-if="canCancelOrder(order)" class="cancel-order-section pt-4 border-t text-right">
+            <button 
+              @click="openCancelModal(order)" 
+              class="btn btn-danger btn-sm"
+              :disabled="cancelingOrder === order.uuid"
+            >
+              {{ cancelingOrder === order.uuid ? 'Cancelling...' : 'Cancel Order' }}
+            </button>
+          </div>
+          
+          <div v-if="order.status_history && order.status_history.length > 0" class="order-history pt-4 border-t mt-4">
+            <h4 class="font-semibold mb-2">Status History:</h4>
+            <div v-for="history in order.status_history" :key="history.updated_at" class="history-item text-sm py-1">
+              <div class="flex justify-between items-center">
+                <span class="history-status font-medium">{{ history.status }}</span>
+                <span class="history-time text-gray-500">{{ new Date(history.updated_at).toLocaleString() }}</span>
+              </div>
+              <span v-if="history.notes" class="history-notes text-gray-600 italic block mt-1">{{ history.notes }}</span>
+            </div>
+          </div>
+        </div>
     </div>
-
-    <button @click="logout" class="btn btn-danger btn-lg mb-6">
-      Logout
-    </button>
 
     <!-- Cart Sidebar -->
     <div class="cart-sidebar card" v-if="cart.length > 0">
@@ -126,76 +183,20 @@
       </div>
     </div>
 
-    <!-- Order History -->
-    <div class="dashboard-box card">
-      <div class="orders-header flex justify-between items-center mb-4">
-        <h3 class="text-xl font-semibold">Your Orders</h3>
-        <button @click="fetchOrders" :disabled="loadingOrders" class="btn btn-primary btn-sm">
-          {{ loadingOrders ? 'Refreshing...' : 'Refresh' }}
-        </button>
+        <!-- Guest Info -->
+    <div class="dashboard-box card mb-6">
+      <h3 class="text-xl font-semibold mb-4 text-gray-700">Logged in as:</h3>
+      <div class="space-y-2">
+        <p><strong class="text-gray-600">Name:</strong> {{ auth.guest?.guest_name }}</p>
+        <p><strong class="text-gray-600">Room Number:</strong> {{ auth.guest?.room_number }}</p>
+        <p><strong class="text-gray-600">UUID:</strong> {{ auth.guest?.guest_uuid }}</p>
       </div>
-      
-      <div v-if="loadingOrders" class="loading text-center py-8 text-gray-500">
-        Loading orders...
-      </div>
-      
-      <div v-else-if="orders.length === 0" class="no-orders text-center py-8 text-gray-500">
-        <p>No orders yet. Start by adding items to your cart!</p>
-      </div>
-      
-      <div v-else class="orders-list space-y-4">
-        <div v-for="order in orders" :key="order.uuid" class="order-card card">
-          <div class="order-header mb-4">
-            <div class="order-id">
-              <strong class="text-lg">Order #{{ order.uuid.substring(0, 8) }}</strong>
-              <p class="order-date text-sm text-gray-500 mt-1">{{ new Date(order.created_at).toLocaleString() }}</p>
-            </div>
-            <div class="order-status">
-              <span class="status-badge" :class="`status-${order.current_status}`">
-                {{ order.current_status }}
-              </span>
-            </div>
-          </div>
-          
-          <div class="order-details grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-            <div class="order-items">
-              <h4 class="font-semibold mb-2">Items:</h4>
-              <div v-for="item in order.solicitud.items" :key="item.name" class="order-item flex justify-between py-2 border-b border-gray-200">
-                <span>{{ item.name }} × {{ item.qty }}</span>
-                <span class="font-medium">${{ item.line_total }} MXN</span>
-              </div>
-            </div>
-            
-            <div class="order-summary">
-              <p class="mb-2"><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
-              <p v-if="order.solicitud.note" class="mb-2"><strong>Note:</strong> {{ order.solicitud.note }}</p>
-              <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
-            </div>
-          </div>
-          
-          <!-- Cancel Button -->
-          <div v-if="canCancelOrder(order)" class="cancel-order-section pt-4 border-t text-right">
-            <button 
-              @click="openCancelModal(order)" 
-              class="btn btn-danger btn-sm"
-              :disabled="cancelingOrder === order.uuid"
-            >
-              {{ cancelingOrder === order.uuid ? 'Cancelling...' : 'Cancel Order' }}
-            </button>
-          </div>
-          
-          <div v-if="order.status_history && order.status_history.length > 0" class="order-history pt-4 border-t mt-4">
-            <h4 class="font-semibold mb-2">Status History:</h4>
-            <div v-for="history in order.status_history" :key="history.updated_at" class="history-item text-sm py-1">
-              <div class="flex justify-between items-center">
-                <span class="history-status font-medium">{{ history.status }}</span>
-                <span class="history-time text-gray-500">{{ new Date(history.updated_at).toLocaleString() }}</span>
-              </div>
-              <span v-if="history.notes" class="history-notes text-gray-600 italic block mt-1">{{ history.notes }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    </div>
+
+    <button @click="logout" class="btn btn-danger btn-lg mb-6">
+      Logout
+    </button>
+    
     </div>
 
     <!-- Cancel Order Modal -->
