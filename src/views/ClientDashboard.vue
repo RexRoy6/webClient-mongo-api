@@ -1,3 +1,252 @@
+<template>
+  <div class="dashboard container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Client Dashboard</h1>
+
+    <!-- Guest Info -->
+    <div class="dashboard-box card mb-6">
+      <h3 class="text-xl font-semibold mb-4 text-gray-700">Logged in as:</h3>
+      <div class="space-y-2">
+        <p><strong class="text-gray-600">Name:</strong> {{ auth.guest?.guest_name }}</p>
+        <p><strong class="text-gray-600">Room Number:</strong> {{ auth.guest?.room_number }}</p>
+        <p><strong class="text-gray-600">UUID:</strong> {{ auth.guest?.guest_uuid }}</p>
+      </div>
+    </div>
+
+    <button @click="logout" class="btn btn-danger btn-lg mb-6">
+      Logout
+    </button>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar card" v-if="cart.length > 0">
+      <div class="cart-header flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Your Cart ({{ cartItemCount }} items)</h3>
+        <button @click="clearCart" class="btn btn-danger btn-sm">
+          Clear
+        </button>
+      </div>
+      
+      <div class="cart-items mb-4">
+        <div v-for="item in cart" :key="item.name" class="cart-item card p-3 mb-3">
+          <div class="flex justify-between items-center">
+            <div class="cart-item-info">
+              <h4 class="font-medium text-gray-800">{{ item.name }}</h4>
+              <p class="item-price text-sm text-gray-600">${{ item.unit_price }} MXN × {{ item.qty }}</p>
+              <p class="item-total font-bold text-gray-900">${{ item.unit_price * item.qty }} MXN</p>
+            </div>
+            <div class="cart-item-actions flex items-center gap-2">
+              <button @click="removeFromCart(item.name)" class="qty-btn btn btn-secondary btn-sm px-3">−</button>
+              <span class="qty-display font-bold min-w-8 text-center">{{ item.qty }}</span>
+              <button @click="addToCart({ name: item.name, price: item.unit_price })" class="qty-btn btn btn-secondary btn-sm px-3">+</button>
+              <button @click="removeItemCompletely(item.name)" class="remove-btn btn btn-danger btn-sm px-3">×</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cart-total text-right text-lg font-bold mb-4 pt-4 border-t">
+        Total: ${{ cartTotal }} MXN
+      </div>
+      
+      <div class="order-note mb-4">
+        <textarea 
+          v-model="orderNote" 
+          placeholder="Add special instructions for your order..."
+          rows="2"
+          class="form-input w-full"
+        ></textarea>
+      </div>
+      
+      <div class="order-actions mb-4">
+        <button 
+          @click="createOrder" 
+          :disabled="creatingOrder" 
+          class="btn btn-success btn-lg w-full"
+        >
+          {{ creatingOrder ? 'Placing Order...' : 'Place Order' }}
+        </button>
+      </div>
+      
+      <!-- Order Messages -->
+      <div v-if="orderError" class="error-box mb-4">
+        {{ orderError }}
+      </div>
+      
+      <div v-if="orderSuccess" class="success-box mb-4">
+        <h4 class="font-bold text-lg mb-2">✅ Order Created Successfully!</h4>
+        <p>Order ID: {{ orderSuccess.uuid }}</p>
+        <p>Status: {{ orderSuccess.current_status }}</p>
+        <p>Total: ${{ orderSuccess.solicitud.total }} MXN</p>
+      </div>
+    </div>
+
+    <!-- Menu Section -->
+    <div class="dashboard-box card mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold">Menu: {{ menuKey }}</h3>
+        <button @click="fetchMenu" class="btn btn-primary btn-sm" :disabled="loading">
+          {{ loading ? 'Loading...' : 'Refresh' }}
+        </button>
+      </div>
+      
+      <!-- Loading State -->
+      <div v-if="loading" class="loading text-center py-8 text-gray-500">
+        Loading menu...
+      </div>
+      
+      <!-- Error State -->
+      <div v-if="error" class="error-box mb-4 flex justify-between items-center">
+        <span>{{ error }}</span>
+        <button @click="fetchMenu" class="btn btn-danger btn-sm">
+          Retry
+        </button>
+      </div>
+      
+      <!-- Menu Display -->
+      <div v-if="menu && !loading">
+        <div class="menu-header card p-4 mb-6">
+          <p><strong>Menu Info:</strong> {{ menu.menu_info }}</p>
+          <p class="text-sm text-gray-500 mt-1">Updated: {{ new Date(menu.updated_at).toLocaleDateString() }}</p>
+        </div>
+        
+        <div class="menu-items grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div v-for="item in menu.items" :key="item.name" class="menu-item card p-4">
+            <div class="flex justify-between items-center">
+              <div class="item-info">
+                <h4 class="font-medium text-gray-800 capitalize">{{ item.name }}</h4>
+                <p class="price text-primary-blue font-bold text-lg">${{ item.price }} MXN</p>
+              </div>
+              <div class="item-actions">
+                <button class="btn btn-primary btn-sm" @click="addToCart(item)">
+                  Add to Order
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order History -->
+    <div class="dashboard-box card">
+      <div class="orders-header flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold">Your Orders</h3>
+        <button @click="fetchOrders" :disabled="loadingOrders" class="btn btn-primary btn-sm">
+          {{ loadingOrders ? 'Refreshing...' : 'Refresh' }}
+        </button>
+      </div>
+      
+      <div v-if="loadingOrders" class="loading text-center py-8 text-gray-500">
+        Loading orders...
+      </div>
+      
+      <div v-else-if="orders.length === 0" class="no-orders text-center py-8 text-gray-500">
+        <p>No orders yet. Start by adding items to your cart!</p>
+      </div>
+      
+      <div v-else class="orders-list space-y-4">
+        <div v-for="order in orders" :key="order.uuid" class="order-card card">
+          <div class="order-header mb-4">
+            <div class="order-id">
+              <strong class="text-lg">Order #{{ order.uuid.substring(0, 8) }}</strong>
+              <p class="order-date text-sm text-gray-500 mt-1">{{ new Date(order.created_at).toLocaleString() }}</p>
+            </div>
+            <div class="order-status">
+              <span class="status-badge" :class="`status-${order.current_status}`">
+                {{ order.current_status }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="order-details grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div class="order-items">
+              <h4 class="font-semibold mb-2">Items:</h4>
+              <div v-for="item in order.solicitud.items" :key="item.name" class="order-item flex justify-between py-2 border-b border-gray-200">
+                <span>{{ item.name }} × {{ item.qty }}</span>
+                <span class="font-medium">${{ item.line_total }} MXN</span>
+              </div>
+            </div>
+            
+            <div class="order-summary">
+              <p class="mb-2"><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
+              <p v-if="order.solicitud.note" class="mb-2"><strong>Note:</strong> {{ order.solicitud.note }}</p>
+              <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
+            </div>
+          </div>
+          
+          <!-- Cancel Button -->
+          <div v-if="canCancelOrder(order)" class="cancel-order-section pt-4 border-t text-right">
+            <button 
+              @click="openCancelModal(order)" 
+              class="btn btn-danger btn-sm"
+              :disabled="cancelingOrder === order.uuid"
+            >
+              {{ cancelingOrder === order.uuid ? 'Cancelling...' : 'Cancel Order' }}
+            </button>
+          </div>
+          
+          <div v-if="order.status_history && order.status_history.length > 0" class="order-history pt-4 border-t mt-4">
+            <h4 class="font-semibold mb-2">Status History:</h4>
+            <div v-for="history in order.status_history" :key="history.updated_at" class="history-item text-sm py-1">
+              <div class="flex justify-between items-center">
+                <span class="history-status font-medium">{{ history.status }}</span>
+                <span class="history-time text-gray-500">{{ new Date(history.updated_at).toLocaleString() }}</span>
+              </div>
+              <span v-if="history.notes" class="history-notes text-gray-600 italic block mt-1">{{ history.notes }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancel Order Modal -->
+    <div v-if="showCancelModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header flex justify-between items-center p-6 border-b">
+          <h3 class="text-xl font-bold text-red-600">Cancel Order</h3>
+          <button @click="closeCancelModal" class="modal-close-btn btn btn-secondary btn-sm p-2 rounded-full">
+            ×
+          </button>
+        </div>
+        
+        <div class="modal-content p-6">
+          <p class="mb-4">Are you sure you want to cancel order <strong>#{{ orderToCancel?.uuid?.substring(0, 8) }}</strong>?</p>
+          <p class="mb-2"><strong>Status:</strong> {{ orderToCancel?.current_status }}</p>
+          <p class="mb-6"><strong>Total:</strong> ${{ orderToCancel?.solicitud?.total }} MXN</p>
+          
+          <div class="cancel-note mb-6">
+            <label for="cancelNote" class="form-label">Reason for cancellation (optional):</label>
+            <textarea 
+              id="cancelNote"
+              v-model="cancelNote" 
+              placeholder="E.g. Changed my mind, too long wait time, etc."
+              rows="3"
+              class="form-input w-full"
+            ></textarea>
+          </div>
+          
+          <div v-if="cancelError" class="error-box mb-6">
+            {{ cancelError }}
+          </div>
+        </div>
+        
+        <div class="modal-actions flex justify-end gap-4 p-6 border-t">
+          <button @click="closeCancelModal" class="btn btn-secondary">
+            No, Keep Order
+          </button>
+          <button 
+            @click="confirmCancelOrder" 
+            :disabled="cancelingOrder"
+            class="btn btn-danger"
+          >
+            {{ cancelingOrder ? 'Cancelling...' : 'Yes, Cancel Order' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Keep the same <script> section -->
 <script setup>
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
@@ -251,229 +500,3 @@ onMounted(() => {
   fetchOrders()
 })
 </script>
-
-<template>
-  <div class="dashboard">
-    <h1>Client Dashboard</h1>
-
-    <!-- Guest Info -->
-    <div class="dashboard-box">
-      <h3>Logged in as:</h3>
-      <p><strong>Name:</strong> {{ auth.guest?.guest_name }}</p>
-      <p><strong>Room Number:</strong> {{ auth.guest?.room_number }}</p>
-      <p><strong>UUID:</strong> {{ auth.guest?.guest_uuid }}</p>
-    </div>
-
-    <button @click="logout" class="dashboard-btn logout-btn">Logout</button>
-
-    <!-- Cart Sidebar -->
-    <div class="cart-sidebar" v-if="cart.length > 0">
-      <div class="cart-header">
-        <h3>Your Cart ({{ cartItemCount }} items)</h3>
-        <button @click="clearCart" class="clear-cart-btn">Clear</button>
-      </div>
-      
-      <div class="cart-items">
-        <div v-for="item in cart" :key="item.name" class="cart-item">
-          <div class="cart-item-info">
-            <h4>{{ item.name }}</h4>
-            <p class="item-price">${{ item.unit_price }} MXN × {{ item.qty }}</p>
-            <p class="item-total">${{ item.unit_price * item.qty }} MXN</p>
-          </div>
-          <div class="cart-item-actions">
-            <button @click="removeFromCart(item.name)" class="qty-btn">−</button>
-            <span class="qty-display">{{ item.qty }}</span>
-            <button @click="addToCart({ name: item.name, price: item.unit_price })" class="qty-btn">+</button>
-            <button @click="removeItemCompletely(item.name)" class="remove-btn">×</button>
-          </div>
-        </div>
-      </div>
-      
-      <div class="cart-total">
-        <strong>Total: ${{ cartTotal }} MXN</strong>
-      </div>
-      
-      <div class="order-note">
-        <textarea 
-          v-model="orderNote" 
-          placeholder="Add special instructions for your order..."
-          rows="2"
-        ></textarea>
-      </div>
-      
-      <div class="order-actions">
-        <button 
-          @click="createOrder" 
-          :disabled="creatingOrder" 
-          class="checkout-btn"
-        >
-          {{ creatingOrder ? 'Placing Order...' : 'Place Order' }}
-        </button>
-      </div>
-      
-      <!-- Order Messages -->
-      <div v-if="orderError" class="error-message">
-        {{ orderError }}
-      </div>
-      
-      <div v-if="orderSuccess" class="success-message">
-        <h4>✅ Order Created Successfully!</h4>
-        <p>Order ID: {{ orderSuccess.uuid }}</p>
-        <p>Status: {{ orderSuccess.current_status }}</p>
-        <p>Total: ${{ orderSuccess.solicitud.total }} MXN</p>
-      </div>
-    </div>
-
-    <!-- Menu Section -->
-    <div class="dashboard-box">
-      <h3>Menu: {{ menuKey }}</h3>
-      
-      <!-- Loading State -->
-      <div v-if="loading" class="loading">
-        Loading menu...
-      </div>
-      
-      <!-- Error State -->
-      <div v-if="error" class="error">
-        {{ error }}
-        <button @click="fetchMenu" class="retry-btn">Retry</button>
-      </div>
-      
-      <!-- Menu Display -->
-      <div v-if="menu && !loading">
-        <div class="menu-header">
-          <p><strong>Menu Info:</strong> {{ menu.menu_info }}</p>
-          <p><small>Updated: {{ new Date(menu.updated_at).toLocaleDateString() }}</small></p>
-        </div>
-        
-        <div class="menu-items">
-          <div v-for="item in menu.items" :key="item.name" class="menu-item">
-            <div class="item-info">
-              <h4>{{ item.name }}</h4>
-              <p class="price">${{ item.price }} MXN</p>
-            </div>
-            <div class="item-actions">
-              <button class="add-btn" @click="addToCart(item)">Add to Order</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Refresh Button -->
-      <button @click="fetchMenu" class="refresh-btn" :disabled="loading">
-        {{ loading ? 'Loading...' : 'Refresh Menu' }}
-      </button>
-    </div>
-
-    <!-- Order History -->
-    <div class="dashboard-box">
-      <div class="orders-header">
-        <h3>Your Orders</h3>
-        <button @click="fetchOrders" :disabled="loadingOrders" class="refresh-orders-btn">
-          {{ loadingOrders ? 'Refreshing...' : 'Refresh' }}
-        </button>
-      </div>
-      
-      <div v-if="loadingOrders" class="loading">
-        Loading orders...
-      </div>
-      
-      <div v-else-if="orders.length === 0" class="no-orders">
-        <p>No orders yet. Start by adding items to your cart!</p>
-      </div>
-      
-      <div v-else class="orders-list">
-        <div v-for="order in orders" :key="order.uuid" class="order-card">
-          <div class="order-header">
-            <div class="order-id">
-              <strong>Order #{{ order.uuid.substring(0, 8) }}</strong>
-              <span class="order-date">{{ new Date(order.created_at).toLocaleString() }}</span>
-            </div>
-            <div class="order-status">
-              <span class="status-badge" :style="{ backgroundColor: getStatusColor(order.current_status) }">
-                {{ order.current_status }}
-              </span>
-            </div>
-          </div>
-          
-          <div class="order-details">
-            <div class="order-items">
-              <h4>Items:</h4>
-              <div v-for="item in order.solicitud.items" :key="item.name" class="order-item">
-                <span>{{ item.name }} × {{ item.qty }}</span>
-                <span>${{ item.line_total }} MXN</span>
-              </div>
-            </div>
-            
-            <div class="order-summary">
-              <p><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
-              <p v-if="order.solicitud.note"><strong>Note:</strong> {{ order.solicitud.note }}</p>
-              <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
-            </div>
-          </div>
-          
-          <!-- Cancel Button -->
-          <div v-if="canCancelOrder(order)" class="cancel-order-section">
-            <button 
-              @click="openCancelModal(order)" 
-              class="cancel-order-btn"
-              :disabled="cancelingOrder === order.uuid"
-            >
-              {{ cancelingOrder === order.uuid ? 'Cancelling...' : 'Cancel Order' }}
-            </button>
-          </div>
-          
-          <div v-if="order.status_history && order.status_history.length > 0" class="order-history">
-            <h4>Status History:</h4>
-            <div v-for="history in order.status_history" :key="history.updated_at" class="history-item">
-              <span class="history-status">{{ history.status }}</span>
-              <span class="history-time">{{ new Date(history.updated_at).toLocaleString() }}</span>
-              <span v-if="history.notes" class="history-notes">{{ history.notes }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Cancel Order Modal -->
-    <div v-if="showCancelModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Cancel Order</h3>
-          <button @click="closeCancelModal" class="modal-close-btn">×</button>
-        </div>
-        
-        <div class="modal-content">
-          <p>Are you sure you want to cancel order <strong>#{{ orderToCancel?.uuid?.substring(0, 8) }}</strong>?</p>
-          <p><strong>Status:</strong> {{ orderToCancel?.current_status }}</p>
-          <p><strong>Total:</strong> ${{ orderToCancel?.solicitud?.total }} MXN</p>
-          
-          <div class="cancel-note">
-            <label for="cancelNote">Reason for cancellation (optional):</label>
-            <textarea 
-              id="cancelNote"
-              v-model="cancelNote" 
-              placeholder="E.g. Changed my mind, too long wait time, etc."
-              rows="3"
-            ></textarea>
-          </div>
-          
-          <div v-if="cancelError" class="error-message">
-            {{ cancelError }}
-          </div>
-        </div>
-        
-        <div class="modal-actions">
-          <button @click="closeCancelModal" class="modal-btn cancel-btn">No, Keep Order</button>
-          <button 
-            @click="confirmCancelOrder" 
-            :disabled="cancelingOrder"
-            class="modal-btn confirm-cancel-btn"
-          >
-            {{ cancelingOrder ? 'Cancelling...' : 'Yes, Cancel Order' }}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
