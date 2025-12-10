@@ -67,7 +67,9 @@ export const useAuthStore = defineStore('auth', {
         this.kitchenUser = {
           ...data.guest, // Note: API returns "guest" object but contains kitchen user data
           kitchenUser_uuid: data.guest.kitchenUser_uuid,
-          name_kitchenUser: data.guest.name_kitchenUser
+          name_kitchenUser: data.guest.name_kitchenUser,
+          number_kitchenNumber: number_kitchenNumber, // Store for logout
+          kitchenUser_key: kitchenUser_key // Store for logout
         }
         
         // Clear guest if exists
@@ -104,6 +106,27 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /* -------------------------------------------------------
+     * KITCHEN LOGOUT WITH API call
+     * ----------------------------------------------------- */
+    async logoutKitchen() {
+      try {
+        if (this.kitchenUser && this.kitchenUser.number_kitchenNumber && this.kitchenUser.kitchenUser_key) {
+          const payload = {
+            number_kitchenNumber: this.kitchenUser.number_kitchenNumber,
+            kitchenUser_key: this.kitchenUser.kitchenUser_key
+          }
+
+          await api.put('api/auth/kitchen/logout', payload)
+        }
+      } catch (error) {
+        console.error('Failed to logout kitchen:', error)
+      }
+
+      // always perform local logout even if API fails
+      this.logout()
+    },
+
+    /* -------------------------------------------------------
      * LOCAL LOGOUT (for both client and kitchen)
      * ----------------------------------------------------- */
     logout() {
@@ -116,6 +139,19 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('userType')
       localStorage.removeItem('guest')
       localStorage.removeItem('kitchenUser')
+    },
+
+    /* -------------------------------------------------------
+     * SMART LOGOUT (automatically chooses correct method)
+     * ----------------------------------------------------- */
+    async smartLogout() {
+      if (this.userType === 'client') {
+        await this.logoutClient()
+      } else if (this.userType === 'kitchen') {
+        await this.logoutKitchen()
+      } else {
+        this.logout()
+      }
     },
 
     /* -------------------------------------------------------
