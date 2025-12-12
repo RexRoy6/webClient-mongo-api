@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useBusinessStore } from '@/stores/business'
 
 // Views
+import BusinessIdentification from '@/views/BusinessIdentification.vue'
 import LoginSelection from '@/views/LoginSelection.vue'
 import ClientLogin from '@/views/ClientLogin.vue'
 import KitchenLogin from '@/views/KitchenLogin.vue'
@@ -9,19 +11,53 @@ import ClientDashboard from '@/views/ClientDashboard.vue'
 import KitchenDashboard from '@/views/KitchenDashboard.vue'
 
 const routes = [
-  // Home: Choose Client Login or Kitchen Login
-  { path: '/', name: 'select-login', component: LoginSelection },
+  // First step: Identify business
+  { 
+    path: '/', 
+    name: 'business-identification', 
+    component: BusinessIdentification 
+  },
+  
+  // Business identification route (also accessible directly)
+  { 
+    path: '/business-identification', 
+    name: 'business-identification-page', 
+    component: BusinessIdentification 
+  },
 
-  // Login Pages
-  { path: '/client/login', name: 'client-login', component: ClientLogin },
-  { path: '/kitchen/login', name: 'kitchen-login', component: KitchenLogin },
+  // Login selection (requires business context)
+  { 
+    path: '/select-login', 
+    name: 'select-login', 
+    component: LoginSelection,
+    meta: { requiresBusiness: true }
+  },
+
+  // Login Pages (require business context)
+  { 
+    path: '/client/login', 
+    name: 'client-login', 
+    component: ClientLogin,
+    meta: { requiresBusiness: true }
+  },
+  
+  { 
+    path: '/kitchen/login', 
+    name: 'kitchen-login', 
+    component: KitchenLogin,
+    meta: { requiresBusiness: true }
+  },
 
   // Protected Client Dashboard
   {
     path: '/client/dashboard',
     name: 'client-dashboard',
     component: ClientDashboard,
-    meta: { requiresAuth: true, role: 'client' }
+    meta: { 
+      requiresAuth: true, 
+      requiresBusiness: true,
+      role: 'client' 
+    }
   },
 
   // Protected Kitchen Dashboard
@@ -29,10 +65,14 @@ const routes = [
     path: '/kitchen/dashboard',
     name: 'kitchen-dashboard',
     component: KitchenDashboard,
-    meta: { requiresAuth: true, role: 'kitchen' }
+    meta: { 
+      requiresAuth: true, 
+      requiresBusiness: true,
+      role: 'kitchen' 
+    }
   },
 
-  // Fallback → redirect unknown URLs
+  // Fallback → redirect to business identification
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
@@ -41,15 +81,22 @@ const router = createRouter({
   routes
 })
 
-// Enhanced Middleware/Auth Guard with role checking
+// Enhanced Middleware/Auth Guard with business context checking
 router.beforeEach((to) => {
   const auth = useAuthStore()
+  const business = useBusinessStore()
+
+  // Check if route requires business context
+  if (to.meta.requiresBusiness && !business.hasBusinessContext) {
+    // Redirect to business identification
+    return '/business-identification'
+  }
 
   // Check if route requires authentication
   if (to.meta.requiresAuth) {
     // User not logged in
     if (!auth.token) {
-      return '/'
+      return '/client/login'
     }
     
     // Check role if specified
@@ -60,7 +107,7 @@ router.beforeEach((to) => {
       } else if (auth.userType === 'kitchen') {
         return '/kitchen/dashboard'
       }
-      return '/'
+      return '/select-login'
     }
   }
 
