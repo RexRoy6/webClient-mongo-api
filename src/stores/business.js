@@ -23,7 +23,7 @@ export const useBusinessStore = defineStore('business', () => {
     error.value = null
     
     try {
-      const response = await api.post('/identify-business', {
+      const response = await api.post('/api/identify-business', {
         identifier: identifier
       })
       
