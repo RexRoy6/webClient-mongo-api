@@ -13,7 +13,7 @@
       <div class="login-header" v-else>
         <h1>Welcome</h1>
         <p class="login-subtitle">Business context required</p>
-      </div>
+      </div>Lo
 
       <!-- Business Warning -->
       <div v-if="!businessStore.hasBusinessContext" class="error-box mb-6">
