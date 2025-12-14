@@ -10,15 +10,9 @@
       <!-- Business Input Form -->
       <div class="login-form" v-if="!businessStore.hasBusinessContext">
         <div class="form-group">
-          <input
-            v-model="identifier"
-            type="text"
-            placeholder="e.g., lunas_cafe or 80123456"
-            :disabled="businessStore.isLoading"
-            @keyup.enter="handleIdentify"
-            class="form-input"
-            :class="{ 'input-error': errorMessage }"
-          />
+          <input v-model="identifier" type="text" placeholder="e.g., cafe or 80123456"
+            :disabled="businessStore.isLoading" @keyup.enter="handleIdentify" class="form-input"
+            :class="{ 'input-error': errorMessage }" />
           <small class="text-sm text-gray-500 mt-1">
             Enter business key or 8-digit code
           </small>
@@ -35,11 +29,7 @@
         </div>
 
         <!-- Action Button -->
-        <button
-          @click="handleIdentify"
-          :disabled="!identifier || businessStore.isLoading"
-          class="login-btn"
-        >
+        <button @click="handleIdentify" :disabled="!identifier || businessStore.isLoading" class="login-btn">
           <span v-if="businessStore.isLoading" class="spinner mr-2"></span>
           <span v-if="businessStore.isLoading">Identifying...</span>
           <span v-else>Continue to Login</span>
@@ -60,7 +50,7 @@
               </ul>
               <p class="text-xs mt-2"><strong>Examples:</strong></p>
               <div class="flex gap-2 mt-1">
-                <code class="text-xs px-2 py-1 bg-gray-200 rounded">lunas_cafe</code>
+                <code class="text-xs px-2 py-1 bg-gray-200 rounded">cafe</code>
                 <code class="text-xs px-2 py-1 bg-gray-200 rounded">80123456</code>
               </div>
             </div>
@@ -69,47 +59,76 @@
       </div>
 
       <!-- Business Info Display (When identified) -->
-      <div v-else class="space-y-4">
-        <div class="success-box">
-          <p class="font-semibold">✓ Business Identified</p>
-          <p class="text-sm mt-1">{{ businessStore.businessName }}</p>
+      <div v-else class="space-y-6">
+
+        <!-- Success Header -->
+        <div class="text-center space-y-2">
+          <p class="text-green-600 font-semibold tracking-wide text-sm">
+            ✓ Business Identified
+          </p>
+          <h2 class="text-3xl font-extrabold text-gray-900 leading-tight">
+            {{ businessStore.businessName }}
+          </h2>
         </div>
 
-        <div class="card">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-semibold">Business Details</h3>
-            <span 
-              class="status-badge"
-              :class="businessStore.currentBusiness.is_active ? 'status-created' : 'status-cancelled'"
-            >
-              {{ businessStore.currentBusiness.is_active ? 'Active' : 'Inactive' }}
+        <!-- Business Card -->
+        <div class="business-details-card space-y-5">
+
+
+          <!-- Status -->
+          <div class="business-details-header">
+
+            <h3 class="text-lg font-semibold text-gray-800">
+              Business Details
+            </h3>
+
+            <span class="px-4 py-1.5 rounded-full text-xs font-bold tracking-wide" :class="businessStore.currentBusiness.is_active
+              ? 'bg-green-600 text-white'
+              : 'bg-red-600 text-white'">
+              {{ businessStore.currentBusiness.is_active ? 'ACTIVE' : 'INACTIVE' }}
             </span>
           </div>
-          
-          <div class="space-y-3">
-            <div class="flex justify-between">
-              <span class="text-gray-600">Key:</span>
-              <span class="font-medium">{{ businessStore.businessKey }}</span>
+
+          <!-- Info Blocks -->
+          <div class="space-y-4 text-base">
+
+            <div class="info-row">
+
+              <span class="text-gray-500 font-medium">Business Key</span>
+              <span class="font-semibold text-gray-900">
+                {{ businessStore.businessKey }}
+              </span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">Code:</span>
-              <span class="font-medium">{{ businessStore.businessCode }}</span>
+
+            <div class="info-row">
+
+              <span class="text-gray-500 font-medium">Business Code</span>
+              <span class="font-semibold text-gray-900">
+                {{ businessStore.businessCode }}
+              </span>
             </div>
-            <div v-if="businessStore.businessConfig.welcome_message">
-              <span class="text-gray-600">Welcome:</span>
-              <p class="mt-1 italic">{{ businessStore.businessConfig.welcome_message }}</p>
+
+            <div v-if="businessStore.businessConfig.welcome_message"
+              class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <p class="text-sm font-semibold text-blue-700 mb-1">
+                Welcome Message
+              </p>
+              <p class="italic text-blue-900 text-sm">
+                "{{ businessStore.businessConfig.welcome_message }}"
+              </p>
             </div>
+
           </div>
-          
-          <div class="mt-4 pt-4 border-t">
-            <p class="text-gray-600 mb-2">Available Login Types:</p>
-            <div class="flex flex-wrap gap-2">
-              <span 
-                v-for="option in businessStore.loginOptions" 
-                :key="option"
-                class="px-3 py-1 rounded-full text-xs font-medium"
-                :class="getOptionClass(option)"
-              >
+
+          <!-- Login Options -->
+          <div class="pt-4 border-t border-gray-200">
+            <p class="text-gray-800 font-semibold mb-3 text-base">
+              Choose how you want to continue
+            </p>
+
+            <div class="flex flex-wrap gap-3">
+              <span v-for="option in businessStore.loginOptions" :key="option"
+                class="px-4 py-2 rounded-xl text-sm font-semibold capitalize shadow-sm" :class="getOptionClass(option)">
                 {{ option }}
               </span>
             </div>
@@ -118,21 +137,16 @@
 
         <!-- Action Buttons -->
         <div class="space-y-3">
-          <button
-            @click="goToLoginSelection"
-            class="btn btn-primary btn-lg w-full"
-          >
-            Continue to Login Selection
+          <button @click="goToLoginSelection" class="btn btn-primary btn-lg w-full text-lg">
+            Enter {{ businessStore.businessName }}
           </button>
-          
-          <button
-            @click="clearBusiness"
-            class="btn btn-secondary btn-md w-full"
-          >
+
+          <button @click="clearBusiness" class="btn btn-secondary w-full">
             Use Different Business
           </button>
         </div>
       </div>
+
 
       <!-- Decorative dots -->
       <div class="flex justify-center gap-2 mt-6">
@@ -159,7 +173,7 @@ const successMessage = ref('')
 onMounted(() => {
   // Initialize business store
   businessStore.init()
-  
+
   // If already identified, show success message
   if (businessStore.hasBusinessContext) {
     successMessage.value = `Already identified: ${businessStore.businessName}`
@@ -168,13 +182,14 @@ onMounted(() => {
 
 function getOptionClass(option) {
   const classes = {
-    'client': 'bg-blue-100 text-blue-800',
-    'kitchen': 'bg-orange-100 text-orange-800',
-    'barista': 'bg-purple-100 text-purple-800',
-    'admin': 'bg-red-100 text-red-800'
+    client: 'bg-blue-600 text-white',
+    kitchen: 'bg-orange-600 text-white',
+    barista: 'bg-purple-600 text-white',
+    admin: 'bg-red-600 text-white'
   }
-  return classes[option] || 'bg-gray-100 text-gray-800'
+  return classes[option] || 'bg-gray-600 text-white'
 }
+
 
 async function handleIdentify() {
   if (!identifier.value.trim()) {
@@ -188,12 +203,12 @@ async function handleIdentify() {
   try {
     await businessStore.identifyBusiness(identifier.value)
     successMessage.value = `Successfully identified: ${businessStore.businessName}`
-    
+
     // Auto-redirect after 1 second
     setTimeout(() => {
       router.push('/select-login')
     }, 1000)
-    
+
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Failed to identify business'
     console.error('Business identification error:', error)
@@ -226,18 +241,43 @@ function clearBusiness() {
 }
 
 /* Additional utility classes */
-.bg-blue-100 { background-color: #ebf8ff; }
-.text-blue-800 { color: #2c5282; }
+.bg-blue-100 {
+  background-color: #ebf8ff;
+}
 
-.bg-orange-100 { background-color: #fffaf0; }
-.text-orange-800 { color: #9c4221; }
+.text-blue-800 {
+  color: #2c5282;
+}
 
-.bg-purple-100 { background-color: #faf5ff; }
-.text-purple-800 { color: #553c9a; }
+.bg-orange-100 {
+  background-color: #fffaf0;
+}
 
-.bg-red-100 { background-color: #fff5f5; }
-.text-red-800 { color: #9b2c2c; }
+.text-orange-800 {
+  color: #9c4221;
+}
 
-.bg-gray-100 { background-color: #f7fafc; }
-.text-gray-800 { color: #2d3748; }
+.bg-purple-100 {
+  background-color: #faf5ff;
+}
+
+.text-purple-800 {
+  color: #553c9a;
+}
+
+.bg-red-100 {
+  background-color: #fff5f5;
+}
+
+.text-red-800 {
+  color: #9b2c2c;
+}
+
+.bg-gray-100 {
+  background-color: #f7fafc;
+}
+
+.text-gray-800 {
+  color: #2d3748;
+}
 </style>
