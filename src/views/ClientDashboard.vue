@@ -170,7 +170,7 @@
             <div class="flex justify-between items-center">
               <div class="item-info">
                 <h4 class="font-medium text-gray-800 capitalize">{{ item.name }}</h4>
-                <p class="price text-primary-blue font-bold text-lg">${{ item.unit_price }} MXN</p>
+                <p class="price text-primary-blue font-bold text-lg">${{ item.price }} MXN</p>
               </div>
               <div class="item-actions">
                 <button class="btn btn-primary btn-sm" @click="addToCart(item)">
@@ -409,9 +409,6 @@ async function fetchOrders() {
     const response = await api.get('/api/orders', {
       headers: {
         'X-Business-Code': business.businessCode
-      },
-      params: {
-        guest_uuid: auth.guest?.guest_uuid
       }
     })
     
@@ -457,6 +454,9 @@ async function confirmCancelOrder() {
   try {
     // Using PUT method with query parameters
     const response = await api.put('/api/orders/cancel', null, {
+      headers: {
+        'X-Business-Code': business.businessCode
+      },
       params: {
         order_uuid: orderToCancel.value.uuid,
         notes: cancelNote.value.trim() || 'Cancelled by guest'
