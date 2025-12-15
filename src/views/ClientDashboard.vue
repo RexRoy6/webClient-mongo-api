@@ -170,7 +170,7 @@
             <div class="flex justify-between items-center">
               <div class="item-info">
                 <h4 class="font-medium text-gray-800 capitalize">{{ item.name }}</h4>
-                <p class="price text-primary-blue font-bold text-lg">${{ item.price }} MXN</p>
+                <p class="price text-primary-blue font-bold text-lg">${{ item.unit_price }} MXN</p>
               </div>
               <div class="item-actions">
                 <button class="btn btn-primary btn-sm" @click="addToCart(item)">
@@ -361,10 +361,7 @@ async function createOrder() {
     return
   }
 
-  if (!auth.guest?.guest_uuid) {
-    orderError.value = 'User information not found. Please log in again.'
-    return
-  }
+  // console.log('info user/guest:', auth.guest)
 
   creatingOrder.value = true
   orderError.value = null
@@ -399,20 +396,35 @@ async function createOrder() {
 }
 
 async function fetchOrders() {
-  if (!auth.guest?.guest_uuid) return
-
   loadingOrders.value = true
   
   try {
-    const response = await api.get('/api/hotel/orders', {
+    // Check if we have business context
+    if (!business.businessCode) {
+      console.error('No business code available')
+      loadingOrders.value = false
+      return
+    }
+
+    const response = await api.get('/api/orders', {
+      headers: {
+        'X-Business-Code': business.businessCode
+      },
       params: {
-        guest_uuid: auth.guest.guest_uuid
+        guest_uuid: auth.guest?.guest_uuid
       }
     })
     
-    orders.value = response.data
+    // Access the orders array from the response structure
+    orders.value = response.data.orders || []
+    
+    // Optional: You might want to store other data too
+    console.log('Full response:', response.data)
+    console.log('Orders:', orders.value)
+    
   } catch (err) {
     console.error('Error fetching orders:', err)
+    orders.value = [] // Ensure it's an empty array on error
   } finally {
     loadingOrders.value = false
   }
@@ -434,7 +446,7 @@ function closeCancelModal() {
 }
 
 async function confirmCancelOrder() {
-  if (!orderToCancel.value || !auth.guest?.guest_uuid) {
+  if (!orderToCancel.value || !auth.guest) {
     cancelError.value = 'Cannot cancel order. Missing information.'
     return
   }
@@ -444,9 +456,9 @@ async function confirmCancelOrder() {
 
   try {
     // Using PUT method with query parameters
-    const response = await api.put('/api/orders', null, {
+    const response = await api.put('/api/orders/cancel', null, {
       params: {
-        uuid: orderToCancel.value.uuid,
+        order_uuid: orderToCancel.value.uuid,
         notes: cancelNote.value.trim() || 'Cancelled by guest'
       }
     })
