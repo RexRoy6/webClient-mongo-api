@@ -187,9 +187,9 @@
     <div class="dashboard-box card mb-6">
       <h3 class="text-xl font-semibold mb-4 text-gray-700">Logged in as:</h3>
       <div class="space-y-2">
-        <p><strong class="text-gray-600">Name:</strong> {{ auth.guest?.guest_name }}</p>
+        <p><strong class="text-gray-600">Name:</strong> {{ auth.guest.guest_name }}</p>
         <p><strong class="text-gray-600">Room Number:</strong> {{ auth.guest?.room_number }}</p>
-        <p><strong class="text-gray-600">UUID:</strong> {{ auth.guest?.guest_uuid }}</p>
+        <p><strong class="text-gray-600">Role:</strong> {{ auth.guest?.role }}</p>
       </div>
     </div>
 
@@ -250,18 +250,20 @@
 <!-- Keep the same <script> section -->
 <script setup>
 import { useAuthStore } from '@/stores/auth'
+import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api/apiClient'
 
 const auth = useAuthStore()
 const router = useRouter()
+const business = useBusinessStore()
 
 // Menu state
 const menu = ref(null)
 const loading = ref(false)
 const error = ref(null)
-const menuKey = ref('menu_cafe')
+const menuKey = ref('menu_la_pergola_t')//ver como sacarlo desde el busness de laapi
 
 // Cart state
 const cart = ref([])
@@ -283,6 +285,7 @@ const orderToCancel = ref(null)
 
 async function logout() {
   await auth.logoutClient()
+  await business.clearBusiness()
   router.push('/')
 }
 
@@ -291,7 +294,7 @@ async function fetchMenu() {
   error.value = null
   
   try {
-    const response = await api.get('/api/hotel/menus', {
+    const response = await api.get('/api/menus', {
       params: {
         menu_key: menuKey.value
       }
@@ -369,7 +372,6 @@ async function createOrder() {
 
   try {
     const orderData = {
-      guest_uuid: auth.guest.guest_uuid,
       menu_key: menuKey.value,
       solicitud: {
         items: cart.value.map(item => ({
@@ -381,7 +383,7 @@ async function createOrder() {
       }
     }
 
-    const response = await api.post('/api/hotel/orders', orderData)
+    const response = await api.post('/api/orders', orderData)
     
     orderSuccess.value = response.data
     clearCart()
@@ -442,11 +444,10 @@ async function confirmCancelOrder() {
 
   try {
     // Using PUT method with query parameters
-    const response = await api.put('/api/hotel/orders', null, {
+    const response = await api.put('/api/orders', null, {
       params: {
         uuid: orderToCancel.value.uuid,
-        notes: cancelNote.value.trim() || 'Cancelled by guest',
-        guest_uuid: auth.guest.guest_uuid
+        notes: cancelNote.value.trim() || 'Cancelled by guest'
       }
     })
     

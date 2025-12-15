@@ -21,6 +21,15 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem('userType', userType)
     },
 
+    clearSession(token, userType){
+      this.token = token
+      this.userType = userType
+
+      localStorage.removeItem('token', token)
+      localStorage.removeItem('userType', userType)
+
+    },
+
     /* -------------------------------------------------------
      * CLIENT LOGIN
      * Stores guest AND room_key after login
@@ -35,7 +44,7 @@ export const useAuthStore = defineStore('auth', {
 
         // Store guest details + room_key inside guest object
         this.guest = {
-          ...data.guest,
+          ...data.user,
           room_key
         }
         
@@ -97,6 +106,12 @@ export const useAuthStore = defineStore('auth', {
 
           await api.put('api/auth/client/reset-room', payload)
         }
+                      // Clear guest if exists
+
+        localStorage.removeItem('guest')
+
+       //aqui meter quitar seesion
+        this.clearSession(data.access_token, 'client')
       } catch (error) {
         console.error('Failed to reset room:', error)
       }
