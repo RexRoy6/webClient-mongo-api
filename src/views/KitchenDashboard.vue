@@ -4,9 +4,9 @@
       <h1 class="text-3xl font-bold">Kitchen Dashboard</h1>
       
       <!-- Kitchen User Info - MOVED TO TOP RIGHT -->
-      <div v-if="auth.kitchenUser" class="text-right">
+      <div v-if="auth.staffUser" class="text-right">
         <div class="text-sm text-gray-600">Logged in as:</div>
-        <div class="font-semibold">{{ auth.kitchenUser.name_kitchenUser }}</div>
+        <div class="font-semibold">{{ auth.staffUser.name }}</div>
       </div>
     </div> <!-- Close the flex container here -->
 
@@ -264,11 +264,27 @@ async function fetchOrders() {
   error.value = null
   
   try {
-    const response = await api.get('/api/orders/kitchen')
+
+     if (!business.businessCode) {
+      console.error('No business code available')
+      loadingOrders.value = false
+      return
+    }
+
+    const response = await api.get('/api/orders/kitchen', {
+      headers: {
+        'X-Business-Code': business.businessCode
+      }
+    })
+    
     
     // Check if response is successful (status code 200-299)
     if (response.status >= 200 && response.status < 300) {
       orders.value = response.data
+          // Optional: You might want to store other data too
+    console.log('Full response:', response.data)
+    console.log('Orders:', orders.value)
+
     } else {
       throw new Error(`HTTP ${response.status}: Failed to fetch orders`)
     }
