@@ -280,10 +280,10 @@ async function fetchOrders() {
     
     // Check if response is successful (status code 200-299)
     if (response.status >= 200 && response.status < 300) {
-      orders.value = response.data
+      orders.value = response.data.orders || []
           // Optional: You might want to store other data too
-    console.log('Full response:', response.data)
-    console.log('Orders:', orders.value)
+    //console.log('Full response:', response.data)
+    //console.log('Orders:', orders.value)
 
     } else {
       throw new Error(`HTTP ${response.status}: Failed to fetch orders`)
@@ -324,9 +324,12 @@ async function updateOrderStatus(order, newStatus) {
   updatingStatus.value = order.uuid
   
   try {
-    const response = await api.put('/api/kitchen/ordersUpdate', null, {
+    const response = await api.put('/api/orders/kitchen/update', null, {
+      headers: {
+        'X-Business-Code': business.businessCode
+      },
       params: {
-        uuid: order.uuid,
+        order_uuid: order.uuid,
         status: newStatus,
         notes: `Status changed to ${newStatus} by kitchen`
       }

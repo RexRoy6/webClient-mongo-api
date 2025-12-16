@@ -416,8 +416,8 @@ async function fetchOrders() {
     orders.value = response.data.orders || []
     
     // Optional: You might want to store other data too
-    console.log('Full response:', response.data)
-    console.log('Orders:', orders.value)
+    //console.log('Full response:', response.data)
+    //console.log('Orders:', orders.value)
     
   } catch (err) {
     console.error('Error fetching orders:', err)

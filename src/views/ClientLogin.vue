@@ -23,7 +23,7 @@ async function login() {
       guestName.value
     )
 
-    console.log('Logged in:', response)
+    //console.log('Logged in:', response)
 
     // ⭐ Redirect to dashboard
     router.push('/client/dashboard')

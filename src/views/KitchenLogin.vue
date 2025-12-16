@@ -22,7 +22,7 @@ const submit = async () => {
       Number(staff_key.value)
     )
 
-    console.log('Kitchen logged in:', data)
+    //console.log('Kitchen logged in:', data)
     const businessStore = useBusinessStore()
 businessStore.setBusinessFromAuth(data.business)
 
