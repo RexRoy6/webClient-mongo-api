@@ -64,13 +64,13 @@ export const useAuthStore = defineStore('auth', {
      * KITCHEN LOGIN
      * Stores kitchen user details after login
      * ----------------------------------------------------- */
-    async loginKitchen(number_kitchenNumber, kitchenUser_key) {
-      const payload = { number_kitchenNumber, kitchenUser_key }
+    async loginKitchen(staff_number, staff_key) {
+      const payload = { staff_number, staff_key }
 
       try {
-        const { data } = await api.post('api/auth/kitchen/login', payload)
+        const { data } = await api.post('api/auth/staff/login', payload)
 
-        this.saveSession(data.access_token, 'kitchen')
+        this.saveSession(data.access_token, 'staff')
 
         // Store kitchen user details
         this.kitchenUser = {
@@ -83,9 +83,9 @@ export const useAuthStore = defineStore('auth', {
         
         // Clear guest if exists
         this.guest = null
-        localStorage.removeItem('guest')
+        localStorage.removeItem('staff')
 
-        localStorage.setItem('kitchenUser', JSON.stringify(this.kitchenUser))
+        localStorage.setItem('staff', JSON.stringify(this.kitchenUser))
 
         return data
       } catch (error) {
@@ -153,7 +153,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('token')
       localStorage.removeItem('userType')
       localStorage.removeItem('guest')
-      localStorage.removeItem('kitchenUser')
+      localStorage.removeItem('staff')
     },
 
     /* -------------------------------------------------------
@@ -162,7 +162,7 @@ export const useAuthStore = defineStore('auth', {
     async smartLogout() {
       if (this.userType === 'client') {
         await this.logoutClient()
-      } else if (this.userType === 'kitchen') {
+      } else if (this.userType === 'staff') {
         await this.logoutKitchen()
       } else {
         this.logout()
@@ -175,7 +175,7 @@ export const useAuthStore = defineStore('auth', {
     getCurrentUser() {
       if (this.userType === 'client') {
         return this.guest
-      } else if (this.userType === 'kitchen') {
+      } else if (this.userType === 'staff') {
         return this.kitchenUser
       }
       return null
