@@ -75,6 +75,29 @@ export const useBusinessStore = defineStore('business', () => {
   function init() {
     loadStoredBusiness()
   }
+  function setBusinessFromAuth(business) {
+  if (!business) return
+
+  // Business code must already exist (from identify-business)
+  const stored = localStorage.getItem('current_business')
+  if (!stored) return
+
+  const parsed = JSON.parse(stored)
+
+  currentBusiness.value = business
+  businessCode.value = parsed.code
+
+  // Refresh persisted business info
+  localStorage.setItem(
+    'current_business',
+    JSON.stringify({
+      code: parsed.code,
+      key: business.key,
+      name: business.name
+    })
+  )
+}
+
 
   return {
     // State
@@ -93,6 +116,7 @@ export const useBusinessStore = defineStore('business', () => {
 
     // Actions
     identifyBusiness,
+    setBusinessFromAuth,
     loadStoredBusiness,
     clearBusiness,
     init

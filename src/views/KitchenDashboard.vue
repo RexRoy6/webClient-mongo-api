@@ -226,12 +226,14 @@
 
 <script setup>
 import { useAuthStore } from '@/stores/auth'
+import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api/apiClient'
 
 const auth = useAuthStore()
 const router = useRouter()
+const business = useBusinessStore()
 
 // Orders state
 const orders = ref([])
@@ -253,6 +255,7 @@ const orderStatuses = [
 
 async function logout() {
   await auth.logoutKitchen()
+  await business.clearBusiness()
   router.push('/')
 }
 
@@ -261,7 +264,7 @@ async function fetchOrders() {
   error.value = null
   
   try {
-    const response = await api.get('/api/kitchen/orders')
+    const response = await api.get('/api/orders/kitchen')
     
     // Check if response is successful (status code 200-299)
     if (response.status >= 200 && response.status < 300) {
