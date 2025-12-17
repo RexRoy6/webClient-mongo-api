@@ -263,7 +263,7 @@ const business = useBusinessStore()
 const menu = ref(null)
 const loading = ref(false)
 const error = ref(null)
-const menuKey = ref('menu_la_pergola_t')//ver como sacarlo desde el busness de laapi
+const menuKey = ref(business.currentBusiness.key)//aqui sacarlo de business
 
 // Cart state
 const cart = ref([])
@@ -294,11 +294,7 @@ async function fetchMenu() {
   error.value = null
   
   try {
-    const response = await api.get('/api/menus', {
-      params: {
-        menu_key: menuKey.value
-      }
-    })
+    const response = await api.get('/api/menus')
     
     menu.value = response.data
   } catch (err) {
