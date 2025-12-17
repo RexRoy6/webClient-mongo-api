@@ -1,13 +1,14 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const auth = useAuthStore()
 
-const number_kitchenNumber = ref('')
-const kitchenUser_key = ref('')
+const staff_number = ref('')
+const staff_key = ref('')
 const error = ref(null)
 const loading = ref(false)
 
@@ -16,12 +17,15 @@ const submit = async () => {
   loading.value = true
 
   try {
-    const data = await auth.loginKitchen(
-      Number(number_kitchenNumber.value),
-      Number(kitchenUser_key.value)
+    const data = await auth.loginStaff(
+      Number(staff_number.value),
+      Number(staff_key.value)
     )
 
-    console.log('Kitchen logged in:', data)
+    //console.log('Kitchen logged in:', data)
+    const businessStore = useBusinessStore()
+businessStore.setBusinessFromAuth(data.business)
+
 
     // Redirect to kitchen dashboard
     router.push('/kitchen/dashboard')
@@ -53,10 +57,10 @@ const submit = async () => {
       <form @submit.prevent="submit" class="login-form">
         <!-- Kitchen User Number -->
         <div class="form-group mb-4">
-          <label for="kitchenNumber" class="form-label">Kitchen User Number</label>
+          <label for="kitchenNumber" class="form-label">staff User Number</label>
           <input 
             id="kitchenNumber"
-            v-model="number_kitchenNumber" 
+            v-model="staff_number" 
             type="number" 
             placeholder="e.g., 1"
             required
@@ -65,15 +69,15 @@ const submit = async () => {
             class="form-input"
             :disabled="loading"
           />
-          <p class="input-hint mt-1 text-sm text-gray-500">Your assigned kitchen number</p>
+          <p class="input-hint mt-1 text-sm text-gray-500">Your assigned staff number</p>
         </div>
 
         <!-- Kitchen User Key -->
         <div class="form-group mb-6">
-          <label for="kitchenKey" class="form-label">Kitchen User Key</label>
+          <label for="kitchenKey" class="form-label">Staff User Key</label>
           <input 
             id="kitchenKey"
-            v-model="kitchenUser_key" 
+            v-model="staff_key" 
             type="number" 
             placeholder="e.g., 456"
             required
@@ -94,7 +98,7 @@ const submit = async () => {
           <span v-if="loading" class="spinner mr-2"></span>
           <span v-else class="flex items-center gap-2">
             <span>👨‍🍳</span>
-            <span>Log In to Kitchen</span>
+            <span>Log In to Kitchen/staff</span>
           </span>
         </button>
       </form>

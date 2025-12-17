@@ -9,6 +9,6 @@ export const kitchenLogin = (payload) =>
 
 export const clientLogin = (payload) =>
   api.post('/auth/client/login', payload) // returns token variant later
-
+S
 export const clientRegisterName = (payload) =>
   api.post('/auth/client/register-name', payload)

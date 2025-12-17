@@ -187,9 +187,9 @@
     <div class="dashboard-box card mb-6">
       <h3 class="text-xl font-semibold mb-4 text-gray-700">Logged in as:</h3>
       <div class="space-y-2">
-        <p><strong class="text-gray-600">Name:</strong> {{ auth.guest?.guest_name }}</p>
+        <p><strong class="text-gray-600">Name:</strong> {{ auth.guest.guest_name }}</p>
         <p><strong class="text-gray-600">Room Number:</strong> {{ auth.guest?.room_number }}</p>
-        <p><strong class="text-gray-600">UUID:</strong> {{ auth.guest?.guest_uuid }}</p>
+        <p><strong class="text-gray-600">Role:</strong> {{ auth.guest?.role }}</p>
       </div>
     </div>
 
@@ -250,18 +250,20 @@
 <!-- Keep the same <script> section -->
 <script setup>
 import { useAuthStore } from '@/stores/auth'
+import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api/apiClient'
 
 const auth = useAuthStore()
 const router = useRouter()
+const business = useBusinessStore()
 
 // Menu state
 const menu = ref(null)
 const loading = ref(false)
 const error = ref(null)
-const menuKey = ref('menu_cafe')
+const menuKey = ref(business.currentBusiness.key)//aqui sacarlo de business
 
 // Cart state
 const cart = ref([])
@@ -283,6 +285,7 @@ const orderToCancel = ref(null)
 
 async function logout() {
   await auth.logoutClient()
+  await business.clearBusiness()
   router.push('/')
 }
 
@@ -291,11 +294,7 @@ async function fetchMenu() {
   error.value = null
   
   try {
-    const response = await api.get('/api/hotel/menus', {
-      params: {
-        menu_key: menuKey.value
-      }
-    })
+    const response = await api.get('/api/menus')
     
     menu.value = response.data
   } catch (err) {
@@ -358,10 +357,7 @@ async function createOrder() {
     return
   }
 
-  if (!auth.guest?.guest_uuid) {
-    orderError.value = 'User information not found. Please log in again.'
-    return
-  }
+  // console.log('info user/guest:', auth.guest)
 
   creatingOrder.value = true
   orderError.value = null
@@ -369,7 +365,6 @@ async function createOrder() {
 
   try {
     const orderData = {
-      guest_uuid: auth.guest.guest_uuid,
       menu_key: menuKey.value,
       solicitud: {
         items: cart.value.map(item => ({
@@ -381,7 +376,7 @@ async function createOrder() {
       }
     }
 
-    const response = await api.post('/api/hotel/orders', orderData)
+    const response = await api.post('/api/orders', orderData)
     
     orderSuccess.value = response.data
     clearCart()
@@ -397,20 +392,32 @@ async function createOrder() {
 }
 
 async function fetchOrders() {
-  if (!auth.guest?.guest_uuid) return
-
   loadingOrders.value = true
   
   try {
-    const response = await api.get('/api/hotel/orders', {
-      params: {
-        guest_uuid: auth.guest.guest_uuid
+    // Check if we have business context
+    if (!business.businessCode) {
+      console.error('No business code available')
+      loadingOrders.value = false
+      return
+    }
+
+    const response = await api.get('/api/orders', {
+      headers: {
+        'X-Business-Code': business.businessCode
       }
     })
     
-    orders.value = response.data
+    // Access the orders array from the response structure
+    orders.value = response.data.orders || []
+    
+    // Optional: You might want to store other data too
+    //console.log('Full response:', response.data)
+    //console.log('Orders:', orders.value)
+    
   } catch (err) {
     console.error('Error fetching orders:', err)
+    orders.value = [] // Ensure it's an empty array on error
   } finally {
     loadingOrders.value = false
   }
@@ -432,7 +439,7 @@ function closeCancelModal() {
 }
 
 async function confirmCancelOrder() {
-  if (!orderToCancel.value || !auth.guest?.guest_uuid) {
+  if (!orderToCancel.value || !auth.guest) {
     cancelError.value = 'Cannot cancel order. Missing information.'
     return
   }
@@ -442,11 +449,13 @@ async function confirmCancelOrder() {
 
   try {
     // Using PUT method with query parameters
-    const response = await api.put('/api/hotel/orders', null, {
+    const response = await api.put('/api/orders/cancel', null, {
+      headers: {
+        'X-Business-Code': business.businessCode
+      },
       params: {
-        uuid: orderToCancel.value.uuid,
-        notes: cancelNote.value.trim() || 'Cancelled by guest',
-        guest_uuid: auth.guest.guest_uuid
+        order_uuid: orderToCancel.value.uuid,
+        notes: cancelNote.value.trim() || 'Cancelled by guest'
       }
     })
     

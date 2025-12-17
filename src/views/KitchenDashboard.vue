@@ -4,9 +4,9 @@
       <h1 class="text-3xl font-bold">Kitchen Dashboard</h1>
       
       <!-- Kitchen User Info - MOVED TO TOP RIGHT -->
-      <div v-if="auth.kitchenUser" class="text-right">
+      <div v-if="auth.staffUser" class="text-right">
         <div class="text-sm text-gray-600">Logged in as:</div>
-        <div class="font-semibold">{{ auth.kitchenUser.name_kitchenUser }}</div>
+        <div class="font-semibold">{{ auth.staffUser.name }}</div>
       </div>
     </div> <!-- Close the flex container here -->
 
@@ -226,12 +226,14 @@
 
 <script setup>
 import { useAuthStore } from '@/stores/auth'
+import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api/apiClient'
 
 const auth = useAuthStore()
 const router = useRouter()
+const business = useBusinessStore()
 
 // Orders state
 const orders = ref([])
@@ -253,6 +255,7 @@ const orderStatuses = [
 
 async function logout() {
   await auth.logoutKitchen()
+  await business.clearBusiness()
   router.push('/')
 }
 
@@ -261,11 +264,27 @@ async function fetchOrders() {
   error.value = null
   
   try {
-    const response = await api.get('/api/kitchen/orders')
+
+     if (!business.businessCode) {
+      console.error('No business code available')
+      loadingOrders.value = false
+      return
+    }
+
+    const response = await api.get('/api/orders/kitchen', {
+      headers: {
+        'X-Business-Code': business.businessCode
+      }
+    })
+    
     
     // Check if response is successful (status code 200-299)
     if (response.status >= 200 && response.status < 300) {
-      orders.value = response.data
+      orders.value = response.data.orders || []
+          // Optional: You might want to store other data too
+    //console.log('Full response:', response.data)
+    //console.log('Orders:', orders.value)
+
     } else {
       throw new Error(`HTTP ${response.status}: Failed to fetch orders`)
     }
@@ -305,9 +324,12 @@ async function updateOrderStatus(order, newStatus) {
   updatingStatus.value = order.uuid
   
   try {
-    const response = await api.put('/api/kitchen/ordersUpdate', null, {
+    const response = await api.put('/api/orders/kitchen/update', null, {
+      headers: {
+        'X-Business-Code': business.businessCode
+      },
       params: {
-        uuid: order.uuid,
+        order_uuid: order.uuid,
         status: newStatus,
         notes: `Status changed to ${newStatus} by kitchen`
       }
