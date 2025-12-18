@@ -1,5 +1,6 @@
 <template>
-  <div class="dashboard container p-4">
+  <div class="dashboard container p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">
   {{ auth.staffUser.role === 'barista' ? 'Barista Dashboard' : 'Kitchen Dashboard' }}
@@ -15,7 +16,9 @@
     </div> <!-- Close the flex container here -->
 
     <!-- Orders Section -->
-    <div class="card mb-6">
+     <!-- LEFT: Orders (2/3 width) -->
+<div class="lg:col-span-2">
+     <div class="card mb-6">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">All Orders</h2>
         <button 
@@ -215,6 +218,29 @@
         </button>
       </div>
     </div> <!-- Close the card -->
+</div>
+ <!-- aqui termina ordenes-->
+
+ <!-- RIGHT: Menu + Cart + Create Order -->
+<div class="space-y-6">
+  <MenuPanel
+    :menus="menus"
+    @add-to-cart="addToCart"
+  />
+
+  <CartPanel
+    :cart="cart"
+    :total="cartTotal"
+    @remove="removeFromCart"
+  />
+
+  <CreateOrderPanel
+    :disabled="cart.length === 0 || creatingOrder"
+    @submit="createOrder"
+  />
+</div>
+
+   
 
     <!-- Logout Button - MOVED TO BOTTOM -->
     <div class="text-center mt-8">
@@ -234,6 +260,7 @@ import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api/apiClient'
+
 
 const auth = useAuthStore()
 const router = useRouter()

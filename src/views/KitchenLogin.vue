@@ -22,13 +22,16 @@ const submit = async () => {
       Number(staff_key.value)
     )
 
-    //console.log('Kitchen logged in:', data)
     const businessStore = useBusinessStore()
-businessStore.setBusinessFromAuth(data.business)
+    businessStore.setBusinessFromAuth(data.business)
 
+    // 🔀 Redirect based on role
+    if (data.user.role === 'barista') {
+      router.push('/barista/dashboard')
+    } else {
+      router.push('/kitchen/dashboard')
+    }
 
-    // Redirect to kitchen dashboard
-    router.push('/kitchen/dashboard')
   } catch (e) {
     error.value = e.response?.data?.message || e.message || 'Login failed'
     console.error('Login error:', e)
@@ -36,6 +39,7 @@ businessStore.setBusinessFromAuth(data.business)
     loading.value = false
   }
 }
+
 </script>
 
 <template>
@@ -43,8 +47,8 @@ businessStore.setBusinessFromAuth(data.business)
     <div class="login-card">
       <!-- Header -->
       <div class="login-header mb-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">Kitchen Login</h1>
-        <p class="login-subtitle text-gray-600">Enter your kitchen credentials</p>
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Kitchen/staff Login</h1>
+        <p class="login-subtitle text-gray-600">Enter your kitchen/staff credentials</p>
       </div>
 
       <!-- Error Message -->

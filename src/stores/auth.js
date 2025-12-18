@@ -42,27 +42,31 @@ export const useAuthStore = defineStore('auth', {
       return data
     },
 
-    async loginStaff(staff_number, staff_key) {
-      const { data } = await api.post('api/auth/staff/login', {
-        staff_number,
-        staff_key
-      })
+async loginStaff(staff_number, staff_key) {
+  const { data } = await api.post('api/auth/staff/login', {
+    staff_number,
+    staff_key
+  })
 
-      // 🔑 IMPORTANT
-      this.saveSession(data.access_token, 'kitchen')
+  // 🔑 use role from backend
+  const role = data.user.role // "kitchen" | "barista"
 
-      this.staffUser = {
-        role: data.user.role,
-        name: data.user.name,
-        staff_number,
-        staff_key
-      }
+  this.saveSession(data.access_token, role)
 
-      localStorage.setItem('staffUser', JSON.stringify(this.staffUser))
-      localStorage.removeItem('guest')
+  this.staffUser = {
+    role,
+    name: data.user.name,
+    staff_number,
+    staff_key
+  }
 
-      return data
-    },
+  localStorage.setItem('staffUser', JSON.stringify(this.staffUser))
+  localStorage.removeItem('guest')
+
+  return data
+},
+
+
 
     async logoutClient() {
       try {
