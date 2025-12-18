@@ -260,6 +260,10 @@ import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api/apiClient'
+import MenuPanel from '@/components/MenuPanel.vue'
+import CartPanel from '@/components/CartPanel.vue'
+import CreateOrderPanel from '@/components/CreateOrderPanel.vue'
+
 
 
 const auth = useAuthStore()
