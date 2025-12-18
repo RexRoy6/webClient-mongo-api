@@ -1,4 +1,19 @@
 <template> <!-- Menu Display -->
+
+<!-- Loading State -->
+      <div v-if="loading" class="loading text-center py-8 text-gray-500">
+        Loading menu...
+      </div>
+      
+      <!-- Error State -->
+      <div v-if="error" class="error-box mb-4 flex justify-between items-center">
+        <span>{{ error }}</span>
+        <button @click="fetchMenu" class="btn btn-danger btn-sm">
+          Retry
+        </button>
+      </div>
+
+      
     <div v-if="menu && !loading">
         <div class="menu-header card p-4 mb-6">
             <p><strong>Menu Info:</strong> {{ menu.menu_info }}</p>
@@ -39,7 +54,11 @@ async function fetchMenu() {
     error.value = null
 
     try {
-        const response = await api.get('/api/menus')
+        const response = await api.get('/api/menus', {
+  headers: {
+    'X-Business-Code': business.businessCode
+  }
+})
 
         menu.value = response.data
     } catch (err) {
@@ -50,4 +69,8 @@ async function fetchMenu() {
     }
 }
 
+// Initialize
+onMounted(() => {
+  fetchMenu()
+})
 </script>
