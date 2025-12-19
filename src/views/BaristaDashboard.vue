@@ -223,10 +223,8 @@
 
  <!-- RIGHT: Menu + Cart + Create Order -->
 <div class="space-y-6">
-  <MenuPanel
-    :menus="menus"
-    @add-to-cart="addToCart"
-  />
+  <MenuPanel @add-to-cart="addToCart" />
+
 
   <CartPanel
     :cart="cart"
@@ -276,6 +274,8 @@ const loading = ref(false)
 const error = ref(null)
 const updatingStatus = ref(null)
 const filterStatus = ref('all')
+const creatingOrder = ref(false)
+
 // Cart state , ver como sacartlo de create order panel
 const cart = ref([])
 
@@ -358,6 +358,44 @@ async function fetchOrders() {
   }
 }
 
+//
+async function createOrder() {
+  if (!cart.value.length) return
+
+  creatingOrder.value = true
+
+  try {
+    const payload = {
+      menu_key: 'default', // or from business/menu store
+      solicitud: {
+        items: cart.value.map(i => ({
+          name: i.name,
+          qty: i.qty
+        })),
+        currency: 'mxn'
+      }
+    }
+
+    await api.post('/api/orders', payload, {
+      headers: {
+        'X-Business-Code': business.businessCode
+      }
+    })
+
+    // clear cart after success
+    cart.value = []
+
+    // refresh orders list
+    fetchOrders()
+  } catch (err) {
+    console.error('Failed to create order:', err)
+    alert(err.response?.data?.message || 'Failed to create order')
+  } finally {
+    creatingOrder.value = false
+  }
+}
+
+
 async function updateOrderStatus(order, newStatus) {
   updatingStatus.value = order.uuid
   
@@ -425,6 +463,8 @@ async function updateOrderStatus(order, newStatus) {
     updatingStatus.value = null
   }
 }
+
+//
 
 // Computed properties
 const statusCounts = computed(() => {
