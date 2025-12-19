@@ -23,7 +23,7 @@
             <div v-for="item in menu.items" :key="item.name" class="menu-item card p-4">
                 <div class="flex justify-between items-center">
                     <div class="item-info">
-                        <h4 class="font-medium text-gray-800 capitalize">{{ item.name }}</h4>
+                        <h4 class="font-medium capitalize">{{ item.name }}</h4>
                         <p class="price text-primary-blue font-bold text-lg">${{ item.price }} MXN</p>
                     </div>
                     <div class="item-actions"> <button class="btn btn-primary btn-sm"

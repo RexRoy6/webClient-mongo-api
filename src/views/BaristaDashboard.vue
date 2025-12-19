@@ -1,7 +1,8 @@
 <template>
+  <div class="p-6 space-y-6">
 
     <!-- HEADER -->
-    <div class="sticky top-0 z-20  pb-4">
+    <div class="sticky top-0 z-30  pb-4">
       <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold">
           {{ auth.staffUser.role === 'barista' ? 'Barista Dashboard' : 'Kitchen Dashboard' }}
@@ -16,15 +17,11 @@
     </div>
 
     <!-- MAIN GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-     <!-- lg: only applies at ≥ 1024px width -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-      <!-- LEFT -->
-      <div class="md:col-span-2 max-h-[80vh] overflow-y-auto">
-
+      <!-- LEFT: ORDERS -->
+      <div class="lg:col-span-2">
         <div class="card">
-          <!-- orders -->
           <!-- orders content -->
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold">All Orders</h2>
@@ -172,9 +169,8 @@
         </div>
       </div>
 
-      <!-- RIGHT (sticky on desktop) -->
       <!-- RIGHT: MENU + CART -->
-      <div class="space-y-6 md:sticky md:top-4 self-start">
+      <div class="space-y-6 lg:sticky lg:top-24 self-start">
         <MenuPanel @add-to-cart="addToCart" />
 
         <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
@@ -193,8 +189,9 @@
       </button>
     </div>
 
-
+  </div>
 </template>
+
 
 <script setup>
 import { useAuthStore } from '@/stores/auth'
