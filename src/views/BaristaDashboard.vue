@@ -227,10 +227,14 @@
 
 
   <CartPanel
-    :cart="cart"
-    :total="cartTotal"
-    @remove="removeFromCart"
-  />
+  :cart="cart"
+  :total="cartTotal"
+  @add="addToCart"
+  @remove="removeFromCart"
+  @remove-all="removeAllFromCart"
+  @clear="clearCart"
+/>
+
 
   <CreateOrderPanel
     :disabled="cart.length === 0 || creatingOrder"
@@ -490,7 +494,7 @@ function addToCart(item) {
     cart.value.push({
       name: item.name,
       qty: 1,
-      unit_price: item.price
+      unit_price: item.unit_price ?? item.price
     })
   }
 }
@@ -503,6 +507,15 @@ function removeFromCart(name) {
       : cart.value.splice(index, 1)
   }
 }
+
+function removeAllFromCart(name) {
+  cart.value = cart.value.filter(i => i.name !== name)
+}
+
+function clearCart() {
+  cart.value = []
+}
+
 
 const cartTotal = computed(() =>
   cart.value.reduce((t, i) => t + i.unit_price * i.qty, 0)
