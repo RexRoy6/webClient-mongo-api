@@ -1,7 +1,5 @@
 <template>
-  <div class="space-y-6 lg:sticky lg:top-4">
-
-
+  <div class="space-y-6">
 
     <!-- HEADER -->
     <div class="flex justify-between items-center">
@@ -16,18 +14,14 @@
       </div>
     </div>
 
-
-    <!-- Orders Section -->
-    <!-- LEFT: Orders (2/3 width) -->
+    <!-- MAIN GRID -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-
-      <!-- LEFT: ORDERS -->
+      <!-- LEFT -->
       <div class="lg:col-span-2 max-h-[80vh] overflow-y-auto">
-
         <div class="card">
-          <!-- Orders content stays exactly the same -->
-
+          <!-- orders -->
+          <!-- orders content -->
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold">All Orders</h2>
             <button @click="fetchOrders" :disabled="loading" class="btn btn-secondary btn-md flex items-center gap-2">
@@ -170,28 +164,24 @@
             </button>
           </div>
 
-
-
+          <!-- orders end -->
         </div>
       </div>
+
+      <!-- RIGHT (sticky on desktop) -->
+      <!-- RIGHT: MENU + CART -->
+      <div class="space-y-6 lg:sticky lg:top-4 self-start">
+        <MenuPanel @add-to-cart="addToCart" />
+
+        <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
+          @remove-all="removeAllFromCart" @clear="clearCart" />
+
+        <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
+          @submit="createOrder" />
+      </div>
+
     </div>
-    <!-- aqui termina ordenes-->
 
-    <!-- RIGHT: Menu + Cart + Create Order -->
-    <!-- RIGHT: MENU + CART -->
-    <div class="space-y-6 order-2">
-      <MenuPanel @add-to-cart="addToCart" />
-
-      <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
-        @remove-all="removeAllFromCart" @clear="clearCart" />
-
-      <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
-    </div>
-
-
-
-
-    <!-- Logout Button - MOVED TO BOTTOM -->
     <!-- LOGOUT -->
     <div class="text-center pt-6">
       <button @click="logout" class="btn btn-danger btn-md">
@@ -199,9 +189,9 @@
       </button>
     </div>
 
+  </div>
 
 
-  </div> <!-- Close the main container -->
 </template>
 
 <script setup>
