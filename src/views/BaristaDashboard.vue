@@ -236,10 +236,12 @@
 />
 
 
-  <CreateOrderPanel
-    :disabled="cart.length === 0 || creatingOrder"
-    @submit="createOrder"
-  />
+<CreateOrderPanel
+  v-model:note="orderNote"
+  :disabled="cart.length === 0 || creatingOrder"
+  @submit="createOrder"
+/>
+
 </div>
 
    
@@ -280,8 +282,9 @@ const updatingStatus = ref(null)
 const filterStatus = ref('all')
 const creatingOrder = ref(false)
 
-// Cart state , ver como sacartlo de create order panel
+// Cart state
 const cart = ref([])
+const orderNote = ref('')
 
 
 // Status configuration
@@ -376,6 +379,7 @@ async function createOrder() {
           name: i.name,
           qty: i.qty
         })),
+        note: orderNote.value || undefined,
         currency: 'mxn'
       }
     }
@@ -388,6 +392,7 @@ async function createOrder() {
 
     // clear cart after success
     cart.value = []
+    orderNote.value = ''
 
     // refresh orders list
     fetchOrders()
@@ -514,6 +519,7 @@ function removeAllFromCart(name) {
 
 function clearCart() {
   cart.value = []
+  orderNote.value = ''
 }
 
 
