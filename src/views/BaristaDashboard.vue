@@ -1,8 +1,7 @@
 <template>
-  <div class="space-y-6">
 
     <!-- HEADER -->
-    <div class="sticky top-0 z-20 bg-white pb-4">
+    <div class="sticky top-0 z-20  pb-4">
       <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold">
           {{ auth.staffUser.role === 'barista' ? 'Barista Dashboard' : 'Kitchen Dashboard' }}
@@ -17,10 +16,13 @@
     </div>
 
     <!-- MAIN GRID -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+     <!-- lg: only applies at ≥ 1024px width -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
       <!-- LEFT -->
-      <div class="lg:col-span-2 max-h-[80vh] overflow-y-auto">
+      <div class="md:col-span-2 max-h-[80vh] overflow-y-auto">
+
         <div class="card">
           <!-- orders -->
           <!-- orders content -->
@@ -172,7 +174,7 @@
 
       <!-- RIGHT (sticky on desktop) -->
       <!-- RIGHT: MENU + CART -->
-      <div class="space-y-6 lg:sticky lg:top-4 self-start">
+      <div class="space-y-6 md:sticky md:top-4 self-start">
         <MenuPanel @add-to-cart="addToCart" />
 
         <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
@@ -190,8 +192,6 @@
         Logout
       </button>
     </div>
-
-  </div>
 
 
 </template>
