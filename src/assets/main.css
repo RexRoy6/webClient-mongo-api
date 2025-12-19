@@ -1,5 +1,4 @@
-/* src/assets/main.css - OPTIMIZED VERSION */
-
+@import "tailwindcss";
 /* ===== CSS RESET & BASE STYLES ===== */
 :root {
   --primary-blue: #4299e1;
@@ -667,8 +666,4 @@ body {
   border-radius: 14px;
   padding: 14px 16px;
 }
-
-
-@import "tailwindcss";
-
 
