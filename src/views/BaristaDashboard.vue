@@ -1,5 +1,6 @@
 <template>
-  <div class="dashboard container p-4">
+  <div class="dashboard container p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">
   {{ auth.staffUser.role === 'barista' ? 'Barista Dashboard' : 'Kitchen Dashboard' }}
@@ -15,7 +16,9 @@
     </div> <!-- Close the flex container here -->
 
     <!-- Orders Section -->
-    <div class="card mb-6">
+     <!-- LEFT: Orders (2/3 width) -->
+<div class="lg:col-span-2">
+     <div class="card mb-6">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">All Orders</h2>
         <button 
@@ -111,7 +114,7 @@
                 </p>
                 <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
                 <p><strong>Order ID:</strong> {{ order.uuid }}</p>
-                <p><strong>Created by:</strong> {{ order.created_by.substring(0, 8) }}...</p>
+                <!-- <p><strong>Created by:</strong> {{ order.created_by.substring(0, 8) }}...</p> -->
               </div>
             </div>
             
@@ -192,7 +195,7 @@
                     {{ history.notes }}
                   </span>
                   <span class="text-gray-400 text-xs">
-                    by: {{ history.updated_by === 'kitchen' ? 'Kitchen' : history.updated_by.substring(0, 8) }}...
+                    by: {{ history.updated_by }}...
                   </span>
                 </div>
               </div>
@@ -215,6 +218,29 @@
         </button>
       </div>
     </div> <!-- Close the card -->
+</div>
+ <!-- aqui termina ordenes-->
+
+ <!-- RIGHT: Menu + Cart + Create Order -->
+<div class="space-y-6">
+  <MenuPanel
+    :menus="menus"
+    @add-to-cart="addToCart"
+  />
+
+  <CartPanel
+    :cart="cart"
+    :total="cartTotal"
+    @remove="removeFromCart"
+  />
+
+  <CreateOrderPanel
+    :disabled="cart.length === 0 || creatingOrder"
+    @submit="createOrder"
+  />
+</div>
+
+   
 
     <!-- Logout Button - MOVED TO BOTTOM -->
     <div class="text-center mt-8">
@@ -234,6 +260,11 @@ import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api/apiClient'
+import MenuPanel from '@/components/MenuPanel.vue'
+import CartPanel from '@/components/CartPanel.vue'
+import CreateOrderPanel from '@/components/CreateOrderPanel.vue'
+
+
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -245,6 +276,9 @@ const loading = ref(false)
 const error = ref(null)
 const updatingStatus = ref(null)
 const filterStatus = ref('all')
+// Cart state , ver como sacartlo de create order panel
+const cart = ref([])
+
 
 // Status configuration
 const orderStatuses = [
@@ -407,6 +441,33 @@ const filteredOrders = computed(() => {
   }
   return orders.value.filter(order => order.current_status === filterStatus.value)
 })
+function addToCart(item) {
+  const existing = cart.value.find(i => i.name === item.name)
+
+  if (existing) {
+    existing.qty++
+  } else {
+    cart.value.push({
+      name: item.name,
+      qty: 1,
+      unit_price: item.price
+    })
+  }
+}
+
+function removeFromCart(name) {
+  const index = cart.value.findIndex(i => i.name === name)
+  if (index !== -1) {
+    cart.value[index].qty > 1
+      ? cart.value[index].qty--
+      : cart.value.splice(index, 1)
+  }
+}
+
+const cartTotal = computed(() =>
+  cart.value.reduce((t, i) => t + i.unit_price * i.qty, 0)
+)
+
 
 // Initialize
 onMounted(() => {

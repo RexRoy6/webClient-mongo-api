@@ -9,6 +9,9 @@ import ClientLogin from '@/views/ClientLogin.vue'
 import KitchenLogin from '@/views/KitchenLogin.vue'
 import ClientDashboard from '@/views/ClientDashboard.vue'
 import KitchenDashboard from '@/views/KitchenDashboard.vue'
+import BaristaLogin from '@/views/BaristaLogin.vue'
+import BaristaDashboard from '@/views/BaristaDashboard.vue'
+
 
 const routes = [
   // First step: Identify business
@@ -47,6 +50,12 @@ const routes = [
     component: KitchenLogin,
     meta: { requiresBusiness: true }
   },
+  {
+  path: '/barista/login',
+  name: 'barista-login',
+  component: BaristaLogin,
+  meta: { requiresBusiness: true }
+},
 
   // Protected Client Dashboard
   {
@@ -71,6 +80,17 @@ const routes = [
       role: 'kitchen' 
     }
   },
+
+{
+  path: '/barista/dashboard',
+  name: 'barista-dashboard',
+  component: BaristaDashboard,
+  meta: {
+    requiresAuth: true,
+    requiresBusiness: true,
+    role: 'barista'
+  }
+},
 
   // Fallback → redirect to business identification
   { path: '/:pathMatch(.*)*', redirect: '/' }
@@ -101,14 +121,21 @@ router.beforeEach((to) => {
     
     // Check role if specified
     if (to.meta.role && auth.userType !== to.meta.role) {
-      // Redirect to appropriate dashboard based on user type
-      if (auth.userType === 'client') {
-        return '/client/dashboard'
-      } else if (auth.userType === 'kitchen') {
-        return '/kitchen/dashboard'
-      }
-      return '/select-login'
-    }
+  if (auth.userType === 'client') {
+    return '/client/dashboard'
+  }
+
+  if (auth.userType === 'kitchen') {
+    return '/kitchen/dashboard'
+  }
+
+  if (auth.userType === 'barista') {
+    return '/barista/dashboard'
+  }
+
+  return '/select-login'
+}
+
   }
 
   return true
