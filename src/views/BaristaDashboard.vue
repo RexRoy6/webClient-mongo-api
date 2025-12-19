@@ -276,6 +276,9 @@ const loading = ref(false)
 const error = ref(null)
 const updatingStatus = ref(null)
 const filterStatus = ref('all')
+// Cart state , ver como sacartlo de create order panel
+const cart = ref([])
+
 
 // Status configuration
 const orderStatuses = [
@@ -438,6 +441,33 @@ const filteredOrders = computed(() => {
   }
   return orders.value.filter(order => order.current_status === filterStatus.value)
 })
+function addToCart(item) {
+  const existing = cart.value.find(i => i.name === item.name)
+
+  if (existing) {
+    existing.qty++
+  } else {
+    cart.value.push({
+      name: item.name,
+      qty: 1,
+      unit_price: item.price
+    })
+  }
+}
+
+function removeFromCart(name) {
+  const index = cart.value.findIndex(i => i.name === name)
+  if (index !== -1) {
+    cart.value[index].qty > 1
+      ? cart.value[index].qty--
+      : cart.value.splice(index, 1)
+  }
+}
+
+const cartTotal = computed(() =>
+  cart.value.reduce((t, i) => t + i.unit_price * i.qty, 0)
+)
+
 
 // Initialize
 onMounted(() => {
