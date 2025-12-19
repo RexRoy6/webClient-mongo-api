@@ -114,7 +114,7 @@
                 </p>
                 <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
                 <p><strong>Order ID:</strong> {{ order.uuid }}</p>
-                <p><strong>Created by:</strong> {{ order.created_by.substring(0, 8) }}...</p>
+                <!-- <p><strong>Created by:</strong> {{ order.created_by.substring(0, 8) }}...</p> -->
               </div>
             </div>
             
@@ -195,7 +195,7 @@
                     {{ history.notes }}
                   </span>
                   <span class="text-gray-400 text-xs">
-                    by: {{ history.updated_by === 'kitchen' ? 'Kitchen' : history.updated_by.substring(0, 8) }}...
+                    by: {{ history.updated_by }}...
                   </span>
                 </div>
               </div>
