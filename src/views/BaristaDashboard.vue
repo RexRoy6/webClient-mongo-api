@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 space-y-6">
+  <div class="min-h-screen flex flex-col p-6">
 
     <!-- HEADER -->
-    <div class="sticky top-0 z-30  pb-4">
+    <div class="sticky top-0 z-30 pb-4 mb-6 ">
       <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold">
           {{ auth.staffUser.role === 'barista' ? 'Barista Dashboard' : 'Kitchen Dashboard' }}
@@ -17,7 +17,8 @@
     </div>
 
     <!-- MAIN GRID -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
 
       <!-- LEFT: ORDERS -->
       <div class="lg:col-span-2">
@@ -170,7 +171,8 @@
       </div>
 
       <!-- RIGHT: MENU + CART -->
-      <div class="space-y-6 lg:sticky lg:top-24 self-start">
+      <div class="space-y-6 lg:sticky lg:top-[88px] self-start">
+
         <MenuPanel @add-to-cart="addToCart" />
 
         <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
@@ -183,11 +185,12 @@
     </div>
 
     <!-- LOGOUT -->
-    <div class="text-center pt-6">
+    <div class="text-center pt-6 mt-6">
       <button @click="logout" class="btn btn-danger btn-md">
         Logout
       </button>
     </div>
+
 
   </div>
 </template>
