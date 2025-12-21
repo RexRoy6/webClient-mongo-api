@@ -666,4 +666,59 @@ body {
   border-radius: 14px;
   padding: 14px 16px;
 }
+/* ===== BARISTA DASHBOARD LAYOUT (ISOLATED) ===== */
+.barista-dashboard {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+}
+
+/* Header */
+.barista-dashboard > .header {
+  grid-row: 1;
+}
+
+/* Main content */
+.barista-dashboard > .main {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  overflow: hidden;
+}
+
+/* Orders column scrolls */
+.barista-dashboard .orders-column {
+  overflow-y: auto;
+}
+
+.barista-dashboard .side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden; /* IMPORTANT */
+}
+
+/* ===== MENU PANEL SCROLL + GRID ===== */
+.menu-scroll {
+  flex: 1;                 /* takes remaining height */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Force menu into 2 columns on desktop */
+.menu-scroll .menu-items {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Smaller menu cards */
+.menu-scroll .menu-item {
+  padding: 12px;
+}
+
+/* Footer */
+.barista-dashboard > .footer {
+  grid-row: 3;
+}
+
 
