@@ -49,10 +49,11 @@
 
           <!-- Orders Display -->
           <template v-else-if="orders.length > 0">
-            <div class="flex-1 overflow-y-auto pr-2">
+            <div class="overflow-y-auto pr-2" style="max-height: calc(100vh - 260px);">
+
               <!-- everything that lists orders -->
 
-              <div class="order-filters mb-6">
+              <div class="order-filters mb-6 sticky top-0 bg-inherit z-10">
                 <div class="flex flex-wrap gap-2">
                   <button v-for="status in orderStatuses" :key="status.key" @click="filterStatus = status.key" :class="[
                     'btn btn-sm',
