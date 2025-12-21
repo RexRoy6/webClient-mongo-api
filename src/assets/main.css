@@ -666,4 +666,42 @@ body {
   border-radius: 14px;
   padding: 14px 16px;
 }
+/* ===== BARISTA DASHBOARD LAYOUT (ISOLATED) ===== */
+.barista-dashboard {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+}
+
+/* Header */
+.barista-dashboard > .header {
+  grid-row: 1;
+}
+
+/* Main content */
+.barista-dashboard > .main {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  overflow: hidden;
+}
+
+/* Orders column scrolls */
+.barista-dashboard .orders-column {
+  overflow-y: auto;
+}
+
+/* Right column stays visible */
+.barista-dashboard .side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Footer */
+.barista-dashboard > .footer {
+  grid-row: 3;
+}
+
 

@@ -1,14 +1,11 @@
 <template>
-  <div class="min-h-screen flex flex-col p-6">
+  <div class="barista-dashboard p-6">
 
     <!-- HEADER -->
-    <div class="sticky top-0 z-30 pb-4 mb-6 ">
+    <div class="header sticky top-0 z-30 mb-6">
       <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold">
-          {{ auth.staffUser.role === 'barista' ? 'Barista Dashboard' : 'Kitchen Dashboard' }}
-        </h1>
-
-        <div v-if="auth.staffUser" class="text-right">
+        <h1 class="text-3xl font-bold">Barista Dashboard</h1>
+        <div class="text-right">
           <div class="text-sm text-gray-600">Logged in as:</div>
           <div class="font-semibold">{{ auth.staffUser.name }}</div>
           <div class="font-semibold">{{ auth.staffUser.role }}</div>
@@ -16,14 +13,14 @@
       </div>
     </div>
 
-    <!-- MAIN GRID -->
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
+    <!-- MAIN -->
+    <div class="main">
 
+      <!-- ORDERS (SCROLLS) -->
+      <div class="orders-column">
+        <div class="card">
+          <!-- YOUR ORDERS CONTENT (unchanged) -->
 
-
-      <!-- LEFT: ORDERS -->
-      <div class="lg:col-span-2 flex flex-col min-h-0">
-        <div class="card flex flex-col min-h-0">
           <!-- orders content -->
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold">All Orders</h2>
@@ -174,33 +171,33 @@
           </div>
 
           <!-- orders end -->
+
+
         </div>
       </div>
 
-      <!-- RIGHT: MENU + CART -->
-      <div class="space-y-6 lg:sticky lg:top-24 self-start">
-
+      <!-- MENU + CART -->
+      <div class="side-column">
         <MenuPanel @add-to-cart="addToCart" />
-
         <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
           @remove-all="removeAllFromCart" @clear="clearCart" />
-
         <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
           @submit="createOrder" />
       </div>
 
     </div>
 
-    <!-- LOGOUT -->
-    <div class="text-center pt-6 mt-6">
-      <button @click="logout" class="btn btn-danger btn-md">
+    <!-- FOOTER -->
+    <div class="footer mt-6">
+      <button @click="logout" class="btn btn-danger">
         Logout
       </button>
     </div>
 
-
   </div>
 </template>
+
+
 
 
 <script setup>
