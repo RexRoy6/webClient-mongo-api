@@ -21,6 +21,9 @@ export const useBusinessStore = defineStore('business', () => {
 
   // Actions
   async function identifyBusiness(identifier) {
+    const auth = useAuthStore()
+    auth.logout() // 🔐 clear previous user session
+
     isLoading.value = true
     error.value = null
 
@@ -56,49 +59,46 @@ export const useBusinessStore = defineStore('business', () => {
   }
 
   function loadStoredBusiness() {
-  const stored = localStorage.getItem('current_business')
-  if (!stored) return false
+    const stored = localStorage.getItem('current_business')
+    if (!stored) return false
 
-  try {
-    const parsed = JSON.parse(stored)
+    try {
+      const parsed = JSON.parse(stored)
 
-    // ⏱ Expiration check
-    const BUSINESS_TTL_MS = 1000 * 60 * 60 * 8 // 8 hours
-    const now = Date.now()
+      const BUSINESS_TTL_MS = 1000 * 60 * 60 * 8
+      const now = Date.now()
 
-    if (!parsed.identifiedAt || now - parsed.identifiedAt > BUSINESS_TTL_MS) {
-  localStorage.setItem('business_expired', 'true')
-  clearBusiness()
-  return false
-}
+      if (!parsed.identifiedAt || now - parsed.identifiedAt > BUSINESS_TTL_MS) {
+        localStorage.setItem('business_expired', 'true')
 
+        const auth = useAuthStore()
+        auth.logout() // ✅ logout ONLY here
 
-    businessCode.value = parsed.code
-    currentBusiness.value = {
-      name: parsed.name,
-      key: parsed.key
+        clearBusiness()
+        return false
+      }
+
+      businessCode.value = parsed.code
+      currentBusiness.value = {
+        name: parsed.name,
+        key: parsed.key
+      }
+
+      return true
+    } catch {
+      clearBusiness()
+      return false
     }
-
-    return true
-  } catch {
-    clearBusiness()
-    return false
   }
-}
+
 
 
   function clearBusiness() {
-    const auth = useAuthStore()
-
-    // 🔐 Logout user first
-    auth.logout()
-
-    // 🧹 Clear business context
     currentBusiness.value = null
     businessCode.value = null
-
     localStorage.removeItem('current_business')
   }
+
 
 
   function init() {
@@ -122,7 +122,8 @@ export const useBusinessStore = defineStore('business', () => {
       JSON.stringify({
         code: parsed.code,
         key: business.key,
-        name: business.name
+        name: business.name,
+        identifiedAt: parsed.identifiedAt
       })
     )
   }
