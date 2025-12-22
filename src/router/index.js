@@ -106,61 +106,39 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
   const business = useBusinessStore()
 
-   // 🔄 Ensure business store is initialized
-  business.init()
-
-  // ⏱ Business expired or missing
+  // 🔐 BUSINESS CONTEXT GUARD
   if (to.meta.requiresBusiness && !business.hasBusinessContext) {
-    return '/business-identification'
-  }
-  
+    const expired = localStorage.getItem('business_expired')
 
-   // 🔑 If business already identified, block business-identification routes
-  if (
-    business.hasBusinessContext &&
-    (to.name === 'business-identification' ||
-     to.name === 'business-identification-page')
-  ) {
-    return '/select-login'
-  }
+    if (expired) {
+      localStorage.removeItem('business_expired')
 
-  // Check if route requires business context
-  if (to.meta.requiresBusiness && !business.hasBusinessContext) {
-    // Redirect to business identification
+      return {
+        path: '/business-identification',
+        query: { reason: 'expired' }
+      }
+    }
+
     return '/business-identification'
   }
 
-  // Check if route requires authentication
+  // 🔑 AUTH GUARD
   if (to.meta.requiresAuth) {
-    // User not logged in
     if (!auth.token) {
       return '/client/login'
     }
 
-    // Check role if specified
     if (to.meta.role && auth.userType !== to.meta.role) {
-      if (auth.userType === 'client') {
-        return '/client/dashboard'
-      }
-
-      if (auth.userType === 'kitchen') {
-        return '/kitchen/dashboard'
-      }
-
-      if (auth.userType === 'barista') {
-        return '/barista/dashboard'
-      }
+      if (auth.userType === 'client') return '/client/dashboard'
+      if (auth.userType === 'kitchen') return '/kitchen/dashboard'
+      if (auth.userType === 'barista') return '/barista/dashboard'
 
       return '/select-login'
     }
-
   }
 
   return true
-}
+})
 
-
-
-)
 
 export default router

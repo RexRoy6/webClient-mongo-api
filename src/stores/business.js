@@ -67,9 +67,11 @@ export const useBusinessStore = defineStore('business', () => {
     const now = Date.now()
 
     if (!parsed.identifiedAt || now - parsed.identifiedAt > BUSINESS_TTL_MS) {
-      clearBusiness()
-      return false
-    }
+  localStorage.setItem('business_expired', 'true')
+  clearBusiness()
+  return false
+}
+
 
     businessCode.value = parsed.code
     currentBusiness.value = {
