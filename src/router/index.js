@@ -101,44 +101,43 @@ const router = createRouter({
   routes
 })
 
-// Enhanced Middleware/Auth Guard with business context checking
+let businessInitialized = false
+
 router.beforeEach((to) => {
   const auth = useAuthStore()
   const business = useBusinessStore()
 
-  // 🔐 BUSINESS CONTEXT GUARD
+  if (!businessInitialized) {
+    business.init()
+    businessInitialized = true
+  }
+
   if (to.meta.requiresBusiness && !business.hasBusinessContext) {
     const expired = localStorage.getItem('business_expired')
 
     if (expired) {
       localStorage.removeItem('business_expired')
-
-      return {
-        path: '/business-identification',
-        query: { reason: 'expired' }
-      }
+      return { path: '/business-identification', query: { reason: 'expired' } }
     }
 
     return '/business-identification'
   }
 
-  // 🔑 AUTH GUARD
   if (to.meta.requiresAuth) {
-    if (!auth.token) {
-      return '/client/login'
-    }
+    if (!auth.token) return '/client/login'
 
     if (to.meta.role && auth.userType !== to.meta.role) {
       if (auth.userType === 'client') return '/client/dashboard'
       if (auth.userType === 'kitchen') return '/kitchen/dashboard'
       if (auth.userType === 'barista') return '/barista/dashboard'
-
       return '/select-login'
     }
   }
 
   return true
 })
+
+
 
 
 export default router
