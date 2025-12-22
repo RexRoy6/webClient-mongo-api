@@ -22,7 +22,7 @@ export const useBusinessStore = defineStore('business', () => {
   // Actions
   async function identifyBusiness(identifier) {
     const auth = useAuthStore()
-    auth.logout() // 🔐 clear previous user session
+    auth.smartLogout() // 🔐 clear previous user session
 
     isLoading.value = true
     error.value = null
@@ -65,14 +65,15 @@ export const useBusinessStore = defineStore('business', () => {
     try {
       const parsed = JSON.parse(stored)
 
-      const BUSINESS_TTL_MS = 1000 * 60 * 60 * 8
+      //const BUSINESS_TTL_MS = 1000 * 60 * 60 * 8 // 8 hrs
+      const BUSINESS_TTL_MS = 1000 * 60 * 60 // 1 hour
       const now = Date.now()
 
       if (!parsed.identifiedAt || now - parsed.identifiedAt > BUSINESS_TTL_MS) {
         localStorage.setItem('business_expired', 'true')
 
         const auth = useAuthStore()
-        auth.logout() // ✅ logout ONLY here
+        auth.smartLogout() // ✅ logout ONLY here
 
         clearBusiness()
         return false
@@ -86,6 +87,8 @@ export const useBusinessStore = defineStore('business', () => {
 
       return true
     } catch {
+      const auth = useAuthStore()
+      auth.smartLogout()
       clearBusiness()
       return false
     }

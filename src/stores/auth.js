@@ -98,7 +98,7 @@ async loginStaff(staff_number, staff_key) {
       this.logout()
     },
 
-    logout() {
+    logout() {//aqui agarrar lo de logoutkitchen o logout user
       this.clearSession()
       this.guest = null
       this.staffUser = null
@@ -107,10 +107,18 @@ async loginStaff(staff_number, staff_key) {
     },
 
     async smartLogout() {
-      if (this.userType === 'client') return this.logoutClient()
-      if (this.userType === 'kitchen') return this.logoutKitchen()
-      this.logout()
-    },
+  if (this.userType === 'client') {
+    return await this.logoutClient()
+  }
+
+  if (this.userType === 'kitchen' || this.userType === 'barista' || this.userType === 'admin') {
+    return await this.logoutKitchen()
+  }
+
+  // fallback
+  this.logout()
+},
+
 
     getCurrentUser() {
       if (this.userType === 'client') return this.guest
