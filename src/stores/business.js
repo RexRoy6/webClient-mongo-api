@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/api/apiClient'
+import { useAuthStore } from '@/stores/auth'
 
 export const useBusinessStore = defineStore('business', () => {
   // State
@@ -16,6 +17,7 @@ export const useBusinessStore = defineStore('business', () => {
   const businessConfig = computed(() => currentBusiness.value?.public_config || {})
   const loginOptions = computed(() => businessConfig.value?.login_options || [])
   const theme = computed(() => businessConfig.value?.theme || 'default')
+
 
   // Actions
   async function identifyBusiness(identifier) {
@@ -38,9 +40,11 @@ export const useBusinessStore = defineStore('business', () => {
         JSON.stringify({
           code: businessCode.value,
           key: business.key,
-          name: business.name
+          name: business.name,
+          identifiedAt: Date.now()
         })
       )
+
 
       return business
     } catch (err) {
@@ -52,10 +56,22 @@ export const useBusinessStore = defineStore('business', () => {
   }
 
   function loadStoredBusiness() {
-    const stored = localStorage.getItem('current_business')
-    if (!stored) return false
+  const stored = localStorage.getItem('current_business')
+  if (!stored) return false
 
+  try {
     const parsed = JSON.parse(stored)
+
+    // ⏱ Expiration check
+    const BUSINESS_TTL_MS = 1000 * 60 * 60 * 8 // 8 hours
+    const now = Date.now()
+
+    if (!parsed.identifiedAt || now - parsed.identifiedAt > BUSINESS_TTL_MS) {
+  localStorage.setItem('business_expired', 'true')
+  clearBusiness()
+  return false
+}
+
 
     businessCode.value = parsed.code
     currentBusiness.value = {
@@ -64,39 +80,52 @@ export const useBusinessStore = defineStore('business', () => {
     }
 
     return true
+  } catch {
+    clearBusiness()
+    return false
   }
+}
+
 
   function clearBusiness() {
+    const auth = useAuthStore()
+
+    // 🔐 Logout user first
+    auth.logout()
+
+    // 🧹 Clear business context
     currentBusiness.value = null
     businessCode.value = null
+
     localStorage.removeItem('current_business')
   }
+
 
   function init() {
     loadStoredBusiness()
   }
   function setBusinessFromAuth(business) {
-  if (!business) return
+    if (!business) return
 
-  // Business code must already exist (from identify-business)
-  const stored = localStorage.getItem('current_business')
-  if (!stored) return
+    // Business code must already exist (from identify-business)
+    const stored = localStorage.getItem('current_business')
+    if (!stored) return
 
-  const parsed = JSON.parse(stored)
+    const parsed = JSON.parse(stored)
 
-  currentBusiness.value = business
-  businessCode.value = parsed.code
+    currentBusiness.value = business
+    businessCode.value = parsed.code
 
-  // Refresh persisted business info
-  localStorage.setItem(
-    'current_business',
-    JSON.stringify({
-      code: parsed.code,
-      key: business.key,
-      name: business.name
-    })
-  )
-}
+    // Refresh persisted business info
+    localStorage.setItem(
+      'current_business',
+      JSON.stringify({
+        code: parsed.code,
+        key: business.key,
+        name: business.name
+      })
+    )
+  }
 
 
   return {

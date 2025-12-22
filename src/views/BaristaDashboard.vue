@@ -195,8 +195,8 @@
     </div>
 
     <!-- FOOTER -->
-    <div class="footer mt-6">
-      <button @click="logout" class="btn btn-danger">
+    <div class="footer mt-6 text-center pt-6">
+      <button @click="logout" class="btn btn-danger btn-sm w-32">
         Logout
       </button>
     </div>

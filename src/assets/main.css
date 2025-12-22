@@ -689,7 +689,9 @@ body {
 
 /* Orders column scrolls */
 .barista-dashboard .orders-column {
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
 }
 
 .barista-dashboard .side-column {
