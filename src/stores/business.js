@@ -65,8 +65,8 @@ export const useBusinessStore = defineStore('business', () => {
     try {
       const parsed = JSON.parse(stored)
 
-      //const BUSINESS_TTL_MS = 1000 * 60 * 60 * 8 // 8 hrs
-      const BUSINESS_TTL_MS = 1000 * 60 * 60 // 1 hour
+      const BUSINESS_TTL_MS = 1000 * 60 * 60 * 8 // 8 hrs
+      //const BUSINESS_TTL_MS = 1000 * 60 * 60 // 1 hour
       const now = Date.now()
 
       if (!parsed.identifiedAt || now - parsed.identifiedAt > BUSINESS_TTL_MS) {
