@@ -106,6 +106,15 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
   const business = useBusinessStore()
 
+   // 🔄 Ensure business store is initialized
+  business.init()
+
+  // ⏱ Business expired or missing
+  if (to.meta.requiresBusiness && !business.hasBusinessContext) {
+    return '/business-identification'
+  }
+  
+
    // 🔑 If business already identified, block business-identification routes
   if (
     business.hasBusinessContext &&
