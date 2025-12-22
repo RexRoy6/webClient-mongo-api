@@ -1,14 +1,12 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <!-- Header -->
       <div class="login-header">
         <h1>Welcome</h1>
         <p class="login-subtitle">Enter your business identifier</p>
       </div>
 
-      <!-- Business Input Form -->
-      <div class="login-form" v-if="!businessStore.hasBusinessContext">
+      <div class="login-form">
         <div class="form-group">
           <input v-model="identifier" type="text" placeholder="e.g., cafe or 80123456"
             :disabled="businessStore.isLoading" @keyup.enter="handleIdentify" class="form-input"
@@ -18,72 +16,19 @@
           </small>
         </div>
 
-        <!-- Error Message -->
         <div v-if="errorMessage" class="error-box">
-          <span>{{ errorMessage }}</span>
+          {{ errorMessage }}
         </div>
 
-        <!-- Success Message -->
-        <div v-if="successMessage" class="success-box">
-          <span>{{ successMessage }}</span>
-        </div>
-
-        <!-- Action Button -->
-        <button @click="handleIdentify" :disabled="!identifier || businessStore.isLoading" class="login-btn">
+        <button class="login-btn" :disabled="!identifier || businessStore.isLoading" @click="handleIdentify">
           <span v-if="businessStore.isLoading" class="spinner mr-2"></span>
-          <span v-if="businessStore.isLoading">Identifying...</span>
-          <span v-else>Continue to Login</span>
+          {{ businessStore.isLoading ? 'Identifying...' : 'Continue to Login' }}
         </button>
-
-        <!-- Help Text -->
-        <div class="mt-4 text-center">
-          <details>
-            <summary class="bg-blue-100">
-              Need help finding your identifier?
-            </summary>
-            <div class="mt-2 p-3 bg-black-50 rounded text-left">
-              <p class="text-xs mb-2"><strong>What to enter:</strong></p>
-              <ul class="text-xs space-y-1">
-                <li>• Ask your manager or administrator</li>
-                <li>• Look for a QR code in your establishment</li>
-                <li>• Contact support for assistance</li>
-              </ul>
-              <p class="text-xs mt-2"><strong>Examples:</strong></p>
-              <div class="flex gap-2 mt-1">
-                <code class="text-xs px-2 py-1 bg-gray-200 rounded">cafe</code>
-                <code class="text-xs px-2 py-1 bg-gray-200 rounded">80123456</code>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-
-      <!-- Business Info Display (Simplified) -->
-      <div class="identified-box">
-        <h2 class="text-3xl font-bold text-gray-900 mt-1">
-          {{ businessStore.businessName }}
-        </h2>
-
-        <p class="text-gray-500 text-sm">You're ready to continue to login</p>
-
-        <!-- Change Business -->
-        <button class="change-btn" @click="clearBusiness">
-          Use a different business
-        </button>
-
-      </div>
-
-
-
-      <!-- Decorative dots -->
-      <div class="flex justify-center gap-2 mt-6">
-        <div class="w-2 h-2 rounded-full bg-gray-300 animate-pulse"></div>
-        <div class="w-2 h-2 rounded-full bg-gray-300 animate-pulse animation-delay-200"></div>
-        <div class="w-2 h-2 rounded-full bg-gray-300 animate-pulse animation-delay-400"></div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -95,19 +40,15 @@ const businessStore = useBusinessStore()
 
 const identifier = ref('')
 const errorMessage = ref('')
-const successMessage = ref('')
 
 onMounted(() => {
-  // Initialize business store
   businessStore.init()
 
-  // If already identified, show success message
+  // Defensive redirect (router already handles this, but safe)
   if (businessStore.hasBusinessContext) {
-    successMessage.value = `Already identified: ${businessStore.businessName}`
+    router.replace('/select-login')
   }
 })
-
-
 
 async function handleIdentify() {
   if (!identifier.value.trim()) {
@@ -116,33 +57,17 @@ async function handleIdentify() {
   }
 
   errorMessage.value = ''
-  successMessage.value = ''
 
   try {
     await businessStore.identifyBusiness(identifier.value)
-    successMessage.value = `Successfully identified: ${businessStore.businessName}`
-
-    // Auto-redirect after 1 second
-    setTimeout(() => {
-      router.push('/select-login')
-    }, 2000)
-
-  } catch (error) {
-    errorMessage.value = error.response?.data?.message || 'Failed to identify business'
-    console.error('Business identification error:', error)
+    router.push('/select-login')
+  } catch (err) {
+    errorMessage.value =
+      err.response?.data?.message || 'Failed to identify business'
   }
 }
-
-function goToLoginSelection() {
-  router.push('/select-login')
-}
-
-function clearBusiness() {
-  businessStore.clearBusiness()
-  identifier.value = ''
-  successMessage.value = ''
-}
 </script>
+
 
 <style scoped>
 /* Add these styles to your main.css or keep here */
@@ -203,7 +128,7 @@ function clearBusiness() {
   text-align: center;
   padding: 2rem 1.5rem;
   color: #111827;
-   cursor: pointer;
+  cursor: pointer;
   font-weight: 600;
   color: #111827;
 }

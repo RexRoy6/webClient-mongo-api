@@ -15,57 +15,57 @@ import BaristaDashboard from '@/views/BaristaDashboard.vue'
 
 const routes = [
   // First step: Identify business
-  { 
-    path: '/', 
-    name: 'business-identification', 
-    component: BusinessIdentification 
+  {
+    path: '/',
+    name: 'business-identification',
+    component: BusinessIdentification
   },
-  
+
   // Business identification route (also accessible directly)
-  { 
-    path: '/business-identification', 
-    name: 'business-identification-page', 
-    component: BusinessIdentification 
+  {
+    path: '/business-identification',
+    name: 'business-identification-page',
+    component: BusinessIdentification
   },
 
   // Login selection (requires business context)
-  { 
-    path: '/select-login', 
-    name: 'select-login', 
+  {
+    path: '/select-login',
+    name: 'select-login',
     component: LoginSelection,
     meta: { requiresBusiness: true }
   },
 
   // Login Pages (require business context)
-  { 
-    path: '/client/login', 
-    name: 'client-login', 
+  {
+    path: '/client/login',
+    name: 'client-login',
     component: ClientLogin,
     meta: { requiresBusiness: true }
   },
-  
-  { 
-    path: '/kitchen/login', 
-    name: 'kitchen-login', 
+
+  {
+    path: '/kitchen/login',
+    name: 'kitchen-login',
     component: KitchenLogin,
     meta: { requiresBusiness: true }
   },
   {
-  path: '/barista/login',
-  name: 'barista-login',
-  component: BaristaLogin,
-  meta: { requiresBusiness: true }
-},
+    path: '/barista/login',
+    name: 'barista-login',
+    component: BaristaLogin,
+    meta: { requiresBusiness: true }
+  },
 
   // Protected Client Dashboard
   {
     path: '/client/dashboard',
     name: 'client-dashboard',
     component: ClientDashboard,
-    meta: { 
-      requiresAuth: true, 
+    meta: {
+      requiresAuth: true,
       requiresBusiness: true,
-      role: 'client' 
+      role: 'client'
     }
   },
 
@@ -74,23 +74,23 @@ const routes = [
     path: '/kitchen/dashboard',
     name: 'kitchen-dashboard',
     component: KitchenDashboard,
-    meta: { 
-      requiresAuth: true, 
+    meta: {
+      requiresAuth: true,
       requiresBusiness: true,
-      role: 'kitchen' 
+      role: 'kitchen'
     }
   },
 
-{
-  path: '/barista/dashboard',
-  name: 'barista-dashboard',
-  component: BaristaDashboard,
-  meta: {
-    requiresAuth: true,
-    requiresBusiness: true,
-    role: 'barista'
-  }
-},
+  {
+    path: '/barista/dashboard',
+    name: 'barista-dashboard',
+    component: BaristaDashboard,
+    meta: {
+      requiresAuth: true,
+      requiresBusiness: true,
+      role: 'barista'
+    }
+  },
 
   // Fallback → redirect to business identification
   { path: '/:pathMatch(.*)*', redirect: '/' }
@@ -106,6 +106,15 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
   const business = useBusinessStore()
 
+   // 🔑 If business already identified, block business-identification routes
+  if (
+    business.hasBusinessContext &&
+    (to.name === 'business-identification' ||
+     to.name === 'business-identification-page')
+  ) {
+    return '/select-login'
+  }
+
   // Check if route requires business context
   if (to.meta.requiresBusiness && !business.hasBusinessContext) {
     // Redirect to business identification
@@ -118,27 +127,31 @@ router.beforeEach((to) => {
     if (!auth.token) {
       return '/client/login'
     }
-    
+
     // Check role if specified
     if (to.meta.role && auth.userType !== to.meta.role) {
-  if (auth.userType === 'client') {
-    return '/client/dashboard'
-  }
+      if (auth.userType === 'client') {
+        return '/client/dashboard'
+      }
 
-  if (auth.userType === 'kitchen') {
-    return '/kitchen/dashboard'
-  }
+      if (auth.userType === 'kitchen') {
+        return '/kitchen/dashboard'
+      }
 
-  if (auth.userType === 'barista') {
-    return '/barista/dashboard'
-  }
+      if (auth.userType === 'barista') {
+        return '/barista/dashboard'
+      }
 
-  return '/select-login'
-}
+      return '/select-login'
+    }
 
   }
 
   return true
-})
+}
+
+
+
+)
 
 export default router
