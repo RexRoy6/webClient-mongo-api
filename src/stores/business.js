@@ -58,7 +58,7 @@ export const useBusinessStore = defineStore('business', () => {
     }
   }
 
-  function loadStoredBusiness() {
+  async  function loadStoredBusiness() {
     const stored = localStorage.getItem('current_business')
     if (!stored) return false
 
@@ -73,7 +73,7 @@ export const useBusinessStore = defineStore('business', () => {
         localStorage.setItem('business_expired', 'true')
 
         const auth = useAuthStore()
-        auth.smartLogout() // ✅ logout ONLY here
+        await auth.smartLogout() // ✅ logout ONLY here
 
         clearBusiness()
         return false
@@ -88,7 +88,7 @@ export const useBusinessStore = defineStore('business', () => {
       return true
     } catch {
       const auth = useAuthStore()
-      auth.smartLogout()
+      await auth.smartLogout()
       clearBusiness()
       return false
     }
@@ -104,8 +104,8 @@ export const useBusinessStore = defineStore('business', () => {
 
 
 
-  function init() {
-    loadStoredBusiness()
+  async function init() {
+    await loadStoredBusiness()
   }
   function setBusinessFromAuth(business) {
     if (!business) return
