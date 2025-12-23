@@ -101,6 +101,13 @@ const router = createRouter({
   routes
 })
 
+router.afterEach((to) => {
+  if (to.meta.requiresAuth) {
+    localStorage.setItem('last_route', to.fullPath)
+  }
+})
+
+
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
@@ -110,13 +117,13 @@ router.beforeEach(async (to) => {
   if (!business.hasBusinessContext) {
     await business.init()
   }
+
   // 🏠 ROOT AUTO-REDIRECT
   if (to.path === '/' && business.hasBusinessContext && auth.token && auth.userType) {
     if (auth.userType === 'client') return '/client/dashboard'
     if (auth.userType === 'kitchen') return '/kitchen/dashboard'
     if (auth.userType === 'barista') return '/barista/dashboard'
   }
-
 
   // 🔐 BUSINESS GUARD
   if (to.meta.requiresBusiness && !business.hasBusinessContext) {
@@ -131,6 +138,12 @@ router.beforeEach(async (to) => {
     }
 
     return '/business-identification'
+  }
+
+  // 🔄 RESTORE LAST AUTH ROUTE
+  if (to.path === '/select-login' && auth.token && auth.userType) {
+    const lastRoute = localStorage.getItem('last_route')
+    if (lastRoute) return lastRoute
   }
 
   // 🚀 AUTO-REDIRECT LOGGED-IN USERS
