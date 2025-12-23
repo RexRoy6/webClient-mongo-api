@@ -101,30 +101,52 @@ const router = createRouter({
   routes
 })
 
-let businessInitialized = false
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
   const business = useBusinessStore()
 
-  if (!businessInitialized) {
-    business.init()
-    businessInitialized = true
+  // 🔁 Restore business from localStorage
+  if (!business.hasBusinessContext) {
+    await business.init()
+  }
+  // 🏠 ROOT AUTO-REDIRECT
+  if (to.path === '/' && business.hasBusinessContext && auth.token && auth.userType) {
+    if (auth.userType === 'client') return '/client/dashboard'
+    if (auth.userType === 'kitchen') return '/kitchen/dashboard'
+    if (auth.userType === 'barista') return '/barista/dashboard'
   }
 
+
+  // 🔐 BUSINESS GUARD
   if (to.meta.requiresBusiness && !business.hasBusinessContext) {
     const expired = localStorage.getItem('business_expired')
 
     if (expired) {
       localStorage.removeItem('business_expired')
-      return { path: '/business-identification', query: { reason: 'expired' } }
+      return {
+        path: '/business-identification',
+        query: { reason: 'expired' }
+      }
     }
 
     return '/business-identification'
   }
 
+  // 🚀 AUTO-REDIRECT LOGGED-IN USERS
+  if (to.path === '/select-login') {
+    if (auth.token && auth.userType) {
+      if (auth.userType === 'client') return '/client/dashboard'
+      if (auth.userType === 'kitchen') return '/kitchen/dashboard'
+      if (auth.userType === 'barista') return '/barista/dashboard'
+    }
+  }
+
+  // 🔑 AUTH GUARD
   if (to.meta.requiresAuth) {
-    if (!auth.token) return '/client/login'
+    if (!auth.token) {
+      return '/client/login'
+    }
 
     if (to.meta.role && auth.userType !== to.meta.role) {
       if (auth.userType === 'client') return '/client/dashboard'
@@ -136,6 +158,7 @@ router.beforeEach((to) => {
 
   return true
 })
+
 
 
 
