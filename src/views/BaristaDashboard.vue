@@ -178,32 +178,39 @@
 
       <!-- MENU + CART -->
       <div class="side-column">
-
-
+        <!-- MENU -->
         <div class="menu-scroll">
           <MenuPanel @add-to-cart="addToCart" />
         </div>
 
+        <!-- CART + CREATE ORDER -->
+        <div class="cart-area">
+          <div class="cart-scroll">
+            <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
+              @remove-all="removeAllFromCart" @clear="clearCart" />
+          </div>
 
 
-        <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
-          @remove-all="removeAllFromCart" @clear="clearCart" />
-        <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
-          @submit="createOrder" />
+        </div>
       </div>
+
 
     </div>
 
     <!-- FOOTER -->
-    <div class="footer mt-6 text-center pt-6">
-      <button @click="logout" class="btn btn-danger btn-sm w-32">
+    <!-- FOOTER ACTIONS (fixed) -->
+    <div class="side-footer">
+      <button @click="logout" class="btn btn-danger btn-sm">
         Logout
       </button>
+      <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
+
+
     </div>
 
   </div>
 </template>
-
+c
 
 
 
