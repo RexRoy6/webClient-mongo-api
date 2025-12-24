@@ -190,8 +190,7 @@
               @remove-all="removeAllFromCart" @clear="clearCart" />
           </div>
 
-          <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
-            @submit="createOrder" />
+
         </div>
       </div>
 
@@ -199,10 +198,14 @@
     </div>
 
     <!-- FOOTER -->
-    <div class="footer mt-6 text-center pt-6">
-      <button @click="logout" class="btn btn-danger btn-sm w-32">
+    <!-- FOOTER ACTIONS (fixed) -->
+    <div class="side-footer">
+      <button @click="logout" class="btn btn-danger btn-sm">
         Logout
       </button>
+      <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
+
+
     </div>
 
   </div>

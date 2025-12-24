@@ -755,9 +755,23 @@ body {
 }
 
 
-/* Footer
-.barista-dashboard > .footer {
-  grid-row: 3;
+ /* Footer */
+/* ===== FOOTER (FIXED) ===== */
+.side-footer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-top: 1px solid var(--gray-700);
+  background: var(--bg-surface);
 }
- */
+
+/* Footer buttons alignment */
+.side-footer > button {
+  flex-shrink: 0;
+}
+
+.side-footer > *:last-child {
+  flex: 1; /* Create Order takes remaining space */
+}
 
