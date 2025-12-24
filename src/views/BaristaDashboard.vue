@@ -178,19 +178,23 @@
 
       <!-- MENU + CART -->
       <div class="side-column">
-
-
+        <!-- MENU -->
         <div class="menu-scroll">
           <MenuPanel @add-to-cart="addToCart" />
         </div>
 
+        <!-- CART + CREATE ORDER -->
+        <div class="cart-area">
+          <div class="cart-scroll">
+            <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
+              @remove-all="removeAllFromCart" @clear="clearCart" />
+          </div>
 
-
-        <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
-          @remove-all="removeAllFromCart" @clear="clearCart" />
-        <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
-          @submit="createOrder" />
+          <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
+            @submit="createOrder" />
+        </div>
       </div>
+
 
     </div>
 
@@ -203,7 +207,7 @@
 
   </div>
 </template>
-
+c
 
 
 
