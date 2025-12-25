@@ -9,8 +9,13 @@ const props = defineProps({
   total: {
     type: Number,
     required: true
+  },
+  title: {
+    type: String,
+    default: 'Cart'
   }
 })
+
 
 const emit = defineEmits([
   'add',
@@ -28,13 +33,12 @@ const cartItemCount = computed(() =>
   <div class="card cart-panel">
     <!-- Header -->
     <div class="flex justify-between mb-4">
-      <h3 class="font-bold">Cart ({{ cartItemCount }})</h3>
+      <h3 class="font-bold">
+        {{ title }} ({{ cartItemCount }})
+      </h3>
 
-      <button
-        v-if="cart.length"
-        class="btn btn-danger btn-sm"
-        @click="emit('clear')"
-      >
+
+      <button v-if="cart.length" class="btn btn-danger btn-sm" @click="emit('clear')">
         Clear
       </button>
     </div>
@@ -61,10 +65,7 @@ const cartItemCount = computed(() =>
           <button class="btn btn-sm" @click="emit('remove', item.name)">−</button>
           <span>{{ item.qty }}</span>
           <button class="btn btn-sm" @click="emit('add', item)">+</button>
-          <button
-            class="btn btn-danger btn-sm"
-            @click="emit('remove-all', item.name)"
-          >
+          <button class="btn btn-danger btn-sm" @click="emit('remove-all', item.name)">
             ×
           </button>
         </div>
@@ -76,4 +77,3 @@ const cartItemCount = computed(() =>
     </template>
   </div>
 </template>
-

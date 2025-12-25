@@ -86,6 +86,12 @@
 
                     <div class="filtered-orders space-y-4">
                       <div v-for="order in filteredOrders" :key="order.uuid" class="order-card">
+                        <button v-if="EDITABLE_STATUSES.includes(order.current_status)" class="btn btn-primary btn-sm"
+                          @click="startEditOrder(order)">
+                          Edit Order
+                        </button>
+
+
                         <div class="order-header mb-4">
                           <div>
                             <div class="flex items-center gap-2 mb-1">
@@ -210,15 +216,50 @@
             <MenuPanel @add-to-cart="addToCart" />
           </div>
 
+
           <!-- CART -->
           <div class="cart-scroll">
-            <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
-              @remove-all="removeAllFromCart" @clear="clearCart" />
+            <!-- EDIT MODE -->
+            <template v-if="editingOrder">
+              <CartPanel title="Edit Order" :cart="editCart" :total="editCartTotal" @add="addToEditCart"
+                @remove="removeFromEditCart" @remove-all="removeAllFromEditCart" @clear="cancelEdit" />
+            </template>
+
+            <!-- CREATE MODE -->
+            <template v-else>
+              <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
+                @remove-all="removeAllFromCart" @clear="clearCart" />
+            </template>
+          </div>
+          <!-- CART -->
+          <!-- create order -->
+          <!-- FOOTER ACTIONS -->
+          <div class="mt-4">
+            <!-- EDIT MODE -->
+            <template v-if="editingOrder">
+              <div class="flex gap-3">
+                <button class="btn btn-primary flex-1" :disabled="savingEdit || editCart.length === 0"
+                  @click="saveOrderEdits">
+                  {{ savingEdit ? 'Saving...' : 'Save Changes' }}
+                </button>
+
+                <button class="btn btn-secondary" @click="cancelEdit">
+                  Cancel
+                </button>
+              </div>
+            </template>
+
+            <!-- CREATE MODE -->
+            <template v-else>
+              <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
+                @submit="createOrder" />
+            </template>
           </div>
 
-          <!-- CREATE ORDER (inside main now, not footer) -->
-          <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
-            @submit="createOrder" />
+
+          <!-- create order -->
+
+
         </div>
       </template>
     </div>
@@ -263,6 +304,17 @@ const error = ref(null)
 const updatingStatus = ref(null)
 const filterStatus = ref('all')
 const creatingOrder = ref(false)
+//order edith state
+const EDITABLE_STATUSES = ['created', 'pending', 'preparing', 'ready']
+const editingOrder = ref(null)     // order being edited
+const editCart = ref([])           // editable items
+const editNote = ref('')
+const savingEdit = ref(false)
+const editCartTotal = computed(() =>
+  editCart.value.reduce((t, i) => t + (i.unit_price ?? 0) * i.qty, 0)
+)
+
+
 
 // Cart state
 const cart = ref([])
@@ -508,6 +560,82 @@ function clearCart() {
 const cartTotal = computed(() =>
   cart.value.reduce((t, i) => t + i.unit_price * i.qty, 0)
 )
+
+//edit cart
+function startEditOrder(order) {
+  editingOrder.value = order
+  editNote.value = order.solicitud.note || ''
+
+  editCart.value = order.solicitud.items.map(i => ({
+    name: i.name,
+    qty: i.qty,
+    unit_price: i.unit_price ?? 0
+  }))
+
+  activeView.value = 'cart' // reuse Cart/Menu view
+}
+function addToEditCart(item) {
+  const existing = editCart.value.find(i => i.name === item.name)
+  if (existing) existing.qty++
+  else editCart.value.push({ name: item.name, qty: 1 })
+}
+
+function removeFromEditCart(name) {
+  const index = editCart.value.findIndex(i => i.name === name)
+  if (index !== -1) {
+    editCart.value[index].qty > 1
+      ? editCart.value[index].qty--
+      : editCart.value.splice(index, 1)
+  }
+}
+
+async function saveOrderEdits() {
+  if (!editingOrder.value) return
+
+  savingEdit.value = true
+
+  try {
+    await api.put(
+      '/api/orders/kitchen/updateItems',
+      {
+        order_uuid: editingOrder.value.uuid,
+        items: editCart.value.map(i => ({
+          name: i.name,
+          qty: i.qty
+        })),
+        note: editNote.value || undefined
+      },
+      {
+        headers: {
+          'X-Business-Code': business.businessCode
+        }
+      }
+    )
+
+    // refresh orders
+    await fetchOrders()
+
+    // cleanup
+    editingOrder.value = null
+    editCart.value = []
+    editNote.value = ''
+    activeView.value = 'orders'
+
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to update order')
+    console.error(err)
+  } finally {
+    savingEdit.value = false
+  }
+}
+function cancelEdit() {
+  editingOrder.value = null
+  editCart.value = []
+  editNote.value = ''
+  activeView.value = 'orders'
+}
+
+
 
 
 // Initialize
