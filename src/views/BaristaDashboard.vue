@@ -99,9 +99,11 @@
                               <span class="status-badge" :class="`status-${order.current_status}`">
                                 {{ order.current_status }}
                               </span>
-                              <span v-if="order.solicitud.guest_room"
-                                class="bg-gray-800 text-white px-2 py-1 rounded text-xs font-bold">
-                                Room {{ order.solicitud.guest_room }}
+                              <span v-if="order.solicitud.name"
+                                class="bg-gray-800 text-white px-5 py-1 rounded text-xs font-bold">
+
+                                <strong class="text-lg">Client Name={{ order.solicitud.name }}</strong>
+
                               </span>
                             </div>
                             <div class="text-sm text-gray-500">
@@ -123,6 +125,7 @@
                           </div>
 
                           <div class="order-summary space-y-2">
+                            <!-- <strong>Name:</strong> {{ order.solicitud.name }} -->
                             <p><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
                             <p v-if="order.solicitud.note">
                               <strong>Note:</strong> {{ order.solicitud.note }}
@@ -258,8 +261,8 @@
 
             <!-- CREATE MODE -->
             <template v-else>
-              <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
-                @submit="createOrder" />
+              <CreateOrderPanel v-model:note="orderNote" v-model:name_client="orderName"
+                :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
             </template>
           </div>
 
@@ -326,6 +329,7 @@ const editCartTotal = computed(() =>
 // Cart state
 const cart = ref([])
 const orderNote = ref('')
+const orderName = ref('')
 
 
 // Status configuration
@@ -421,6 +425,7 @@ async function createOrder() {
           qty: i.qty
         })),
         note: orderNote.value || undefined,
+        name: orderName.value || undefined,
         currency: 'mxn'
       }
     }
@@ -434,6 +439,7 @@ async function createOrder() {
     // clear cart after success
     cart.value = []
     orderNote.value = ''
+    orderName.value = ''
 
     // refresh orders list
     fetchOrders()
@@ -561,6 +567,7 @@ function removeAllFromCart(name) {
 function clearCart() {
   cart.value = []
   orderNote.value = ''
+  orderName.value = ''
 }
 
 
@@ -582,7 +589,6 @@ function startEditOrder(order) {
   activeView.value = 'cart' // reuse Cart/Menu view
 }
 function addToEditCart(item) {
-  console.log('ADD TO EDIT CART:', item)
   const existing = editCart.value.find(i => i.name === item.name)
 
   if (existing) {
@@ -653,7 +659,6 @@ function cancelEdit() {
   activeView.value = 'orders'
 }
 function handleAddFromMenu(item) {
-  console.log('MENU ITEM CLICKED:', item)
 
   if (editingOrder.value) {
     addToEditCart(item)
