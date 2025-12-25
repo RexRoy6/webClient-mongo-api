@@ -13,7 +13,7 @@
       <div class="login-header" v-else>
         <h1>Welcome</h1>
         <p class="login-subtitle">Business context required</p>
-      </div>Lo
+      </div>
 
       <!-- Business Warning -->
       <div v-if="!businessStore.hasBusinessContext" class="error-box mb-6">
@@ -73,13 +73,6 @@
         <button @click="changeBusiness" class="btn btn-secondary btn-sm w-full">
           Not {{ businessStore.businessName }}? Change Business
         </button>
-      </div>
-
-      <!-- Decorative dots -->
-      <div class="flex justify-center gap-2 mt-6">
-        <div class="w-2 h-2 rounded-full bg-gray-300 animate-pulse"></div>
-        <div class="w-2 h-2 rounded-full bg-gray-300 animate-pulse animation-delay-200"></div>
-        <div class="w-2 h-2 rounded-full bg-gray-300 animate-pulse animation-delay-400"></div>
       </div>
     </div>
   </div>
