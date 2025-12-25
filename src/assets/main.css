@@ -727,6 +727,19 @@ body {
 .menu-scroll .menu-item {
   padding: 12px;
 }
+.menu-item-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.menu-item-content .price {
+  margin-top: 4px;
+}
+.menu-item .btn {
+  margin-top: auto; /* pushes button down if cards grow */
+}
+
 
 /* CART + CREATE ORDER CONTAINER */
 .cart-area {
