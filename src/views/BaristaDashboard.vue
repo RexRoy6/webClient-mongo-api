@@ -16,201 +16,224 @@
     <!-- MAIN -->
     <div class="main">
 
+      <!-- VIEW SELECTOR -->
+      <div class="view-selector">
+        <button class="btn btn-sm" :class="activeView === 'orders' ? 'btn-primary' : 'btn-secondary'"
+          @click="activeView = 'orders'">
+          Orders
+        </button>
+
+        <button class="btn btn-sm" :class="activeView === 'cart' ? 'btn-primary' : 'btn-secondary'"
+          @click="activeView = 'cart'">
+          Cart / Menu
+        </button>
+      </div>
+      <!-- VIEW SELECTOR -->
+
+
+
       <!-- ORDERS (SCROLLS) -->
-      <div class="orders-column">
-        <div class="card">
-          <!-- YOUR ORDERS CONTENT (unchanged) -->
+      <!-- ORDERS VIEW -->
+      <template v-if="activeView === 'orders'">
+        <div class="orders-only">
+          <div class="orders-scroll">
+            <!-- ✅ YOUR EXISTING ORDERS COLUMN CONTENT GOES HERE UNCHANGED -->
+            <div class="orders-column">
+              <div class="card">
+                <!-- YOUR ORDERS CONTENT (unchanged) -->
 
-          <!-- orders content -->
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold">All Orders</h2>
-            <button @click="fetchOrders" :disabled="loading" class="btn btn-secondary btn-md flex items-center gap-2">
-              <span v-if="loading" class="spinner"></span>
-              {{ loading ? 'Refreshing...' : 'Refresh Orders' }}
-            </button>
-          </div>
-
-          <!-- Loading State -->
-          <div v-if="loading" class="loading text-center py-8">
-            <div class="spinner mx-auto mb-2"></div>
-            Loading orders...
-          </div>
-
-          <!-- Error State -->
-          <div v-else-if="error" class="error-box">
-            <span>{{ error }}</span>
-            <button @click="fetchOrders" class="btn btn-secondary btn-sm ml-4">
-              Retry
-            </button>
-          </div>
-
-          <!-- Orders Display -->
-          <template v-else-if="orders.length > 0">
-            <div class="overflow-y-auto pr-2" style="max-height: calc(100vh - 260px);">
-
-              <!-- everything that lists orders -->
-
-              <div class="order-filters mb-6 sticky top-0 bg-inherit z-10">
-                <div class="flex flex-wrap gap-2">
-                  <button v-for="status in orderStatuses" :key="status.key" @click="filterStatus = status.key" :class="[
-                    'btn btn-sm',
-                    filterStatus === status.key ? 'btn-primary' : 'btn-secondary'
-                  ]">
-                    {{ status.label }} ({{ statusCounts[status.key] || 0 }})
+                <!-- orders content -->
+                <div class="flex justify-between items-center mb-6">
+                  <h2 class="text-2xl font-bold">All Orders</h2>
+                  <button @click="fetchOrders" :disabled="loading"
+                    class="btn btn-secondary btn-md flex items-center gap-2">
+                    <span v-if="loading" class="spinner"></span>
+                    {{ loading ? 'Refreshing...' : 'Refresh Orders' }}
                   </button>
                 </div>
-              </div>
 
-              <div class="filtered-orders space-y-4">
-                <div v-for="order in filteredOrders" :key="order.uuid" class="order-card">
-                  <div class="order-header mb-4">
-                    <div>
-                      <div class="flex items-center gap-2 mb-1">
-                        <strong class="text-lg">Order #{{ order.uuid.substring(0, 8) }}</strong>
-                        <span class="status-badge" :class="`status-${order.current_status}`">
-                          {{ order.current_status }}
-                        </span>
-                        <span v-if="order.solicitud.guest_room"
-                          class="bg-gray-800 text-white px-2 py-1 rounded text-xs font-bold">
-                          Room {{ order.solicitud.guest_room }}
-                        </span>
-                      </div>
-                      <div class="text-sm text-gray-500">
-                        {{ new Date(order.created_at).toLocaleString() }}
+                <!-- Loading State -->
+                <div v-if="loading" class="loading text-center py-8">
+                  <div class="spinner mx-auto mb-2"></div>
+                  Loading orders...
+                </div>
+
+                <!-- Error State -->
+                <div v-else-if="error" class="error-box">
+                  <span>{{ error }}</span>
+                  <button @click="fetchOrders" class="btn btn-secondary btn-sm ml-4">
+                    Retry
+                  </button>
+                </div>
+
+                <!-- Orders Display -->
+                <template v-else-if="orders.length > 0">
+                  <div class="overflow-y-auto pr-2" style="max-height: calc(100vh - 260px);">
+
+                    <!-- everything that lists orders -->
+
+                    <div class="order-filters mb-6 sticky top-0 bg-inherit z-10">
+                      <div class="flex flex-wrap gap-2">
+                        <button v-for="status in orderStatuses" :key="status.key" @click="filterStatus = status.key"
+                          :class="[
+                            'btn btn-sm',
+                            filterStatus === status.key ? 'btn-primary' : 'btn-secondary'
+                          ]">
+                          {{ status.label }} ({{ statusCounts[status.key] || 0 }})
+                        </button>
                       </div>
                     </div>
-                  </div>
 
-                  <div class="order-details grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="order-items">
-                      <h4 class="font-semibold mb-2">Items:</h4>
-                      <div class="space-y-1">
-                        <div v-for="item in order.solicitud.items" :key="item.name"
-                          class="flex justify-between py-1 border-b border-gray-100 last:border-b-0">
-                          <span>{{ item.name }} × {{ item.qty }}</span>
-                          <span class="font-medium">${{ item.line_total }} MXN</span>
+                    <div class="filtered-orders space-y-4">
+                      <div v-for="order in filteredOrders" :key="order.uuid" class="order-card">
+                        <div class="order-header mb-4">
+                          <div>
+                            <div class="flex items-center gap-2 mb-1">
+                              <strong class="text-lg">Order #{{ order.uuid.substring(0, 8) }}</strong>
+                              <span class="status-badge" :class="`status-${order.current_status}`">
+                                {{ order.current_status }}
+                              </span>
+                              <span v-if="order.solicitud.guest_room"
+                                class="bg-gray-800 text-white px-2 py-1 rounded text-xs font-bold">
+                                Room {{ order.solicitud.guest_room }}
+                              </span>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                              {{ new Date(order.created_at).toLocaleString() }}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="order-details grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div class="order-items">
+                            <h4 class="font-semibold mb-2">Items:</h4>
+                            <div class="space-y-1">
+                              <div v-for="item in order.solicitud.items" :key="item.name"
+                                class="flex justify-between py-1 border-b border-gray-100 last:border-b-0">
+                                <span>{{ item.name }} × {{ item.qty }}</span>
+                                <span class="font-medium">${{ item.line_total }} MXN</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="order-summary space-y-2">
+                            <p><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
+                            <p v-if="order.solicitud.note">
+                              <strong>Note:</strong> {{ order.solicitud.note }}
+                            </p>
+                            <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
+                            <p><strong>Order ID:</strong> {{ order.uuid }}</p>
+                            <!-- <p><strong>Created by:</strong> {{ order.created_by.substring(0, 8) }}...</p> -->
+                          </div>
+                        </div>
+
+                        <!-- Status Update Buttons -->
+                        <div v-if="order.current_status !== 'cancelled' && order.current_status !== 'delivered'"
+                          class="status-actions border-t pt-4 flex flex-wrap gap-2">
+                          <button v-if="order.current_status === 'created'" @click="updateOrderStatus(order, 'pending')"
+                            :disabled="updatingStatus === order.uuid" class="btn btn-warning btn-sm">
+                            Mark as Pending
+                          </button>
+
+                          <button v-if="order.current_status === 'created' || order.current_status === 'pending'"
+                            @click="updateOrderStatus(order, 'preparing')" :disabled="updatingStatus === order.uuid"
+                            class="btn btn-warning btn-sm">
+                            Mark as Preparing
+                          </button>
+
+                          <button v-if="order.current_status === 'preparing'" @click="updateOrderStatus(order, 'ready')"
+                            :disabled="updatingStatus === order.uuid" class="btn btn-success btn-sm">
+                            Mark as Ready
+                          </button>
+
+                          <button v-if="order.current_status === 'ready'" @click="updateOrderStatus(order, 'delivered')"
+                            :disabled="updatingStatus === order.uuid" class="btn btn-secondary btn-sm">
+                            Mark as Delivered
+                          </button>
+
+                          <button v-if="['created', 'pending', 'preparing'].includes(order.current_status)"
+                            @click="updateOrderStatus(order, 'cancelled')" :disabled="updatingStatus === order.uuid"
+                            class="btn btn-danger btn-sm">
+                            Cancel Order
+                          </button>
+                        </div>
+
+                        <div v-if="order.status_history && order.status_history.length > 0"
+                          class="order-history mt-4 pt-4 border-t">
+                          <h4 class="font-semibold mb-2">Status History:</h4>
+                          <div class="space-y-1">
+                            <div v-for="history in order.status_history" :key="history.updated_at"
+                              class="flex flex-wrap items-center gap-2 text-sm py-1">
+                              <span class="status-badge status-created">
+                                {{ history.status }}
+                              </span>
+                              <span class="text-gray-500">
+                                {{ new Date(history.updated_at).toLocaleString() }}
+                              </span>
+                              <span v-if="history.notes" class="text-gray-600 italic">
+                                {{ history.notes }}
+                              </span>
+                              <span class="text-gray-400 text-xs">
+                                by: {{ history.updated_by }}...
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-
-                    <div class="order-summary space-y-2">
-                      <p><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
-                      <p v-if="order.solicitud.note">
-                        <strong>Note:</strong> {{ order.solicitud.note }}
-                      </p>
-                      <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
-                      <p><strong>Order ID:</strong> {{ order.uuid }}</p>
-                      <!-- <p><strong>Created by:</strong> {{ order.created_by.substring(0, 8) }}...</p> -->
-                    </div>
                   </div>
+                </template>
 
-                  <!-- Status Update Buttons -->
-                  <div v-if="order.current_status !== 'cancelled' && order.current_status !== 'delivered'"
-                    class="status-actions border-t pt-4 flex flex-wrap gap-2">
-                    <button v-if="order.current_status === 'created'" @click="updateOrderStatus(order, 'pending')"
-                      :disabled="updatingStatus === order.uuid" class="btn btn-warning btn-sm">
-                      Mark as Pending
-                    </button>
 
-                    <button v-if="order.current_status === 'created' || order.current_status === 'pending'"
-                      @click="updateOrderStatus(order, 'preparing')" :disabled="updatingStatus === order.uuid"
-                      class="btn btn-warning btn-sm">
-                      Mark as Preparing
-                    </button>
-
-                    <button v-if="order.current_status === 'preparing'" @click="updateOrderStatus(order, 'ready')"
-                      :disabled="updatingStatus === order.uuid" class="btn btn-success btn-sm">
-                      Mark as Ready
-                    </button>
-
-                    <button v-if="order.current_status === 'ready'" @click="updateOrderStatus(order, 'delivered')"
-                      :disabled="updatingStatus === order.uuid" class="btn btn-secondary btn-sm">
-                      Mark as Delivered
-                    </button>
-
-                    <button v-if="['created', 'pending', 'preparing'].includes(order.current_status)"
-                      @click="updateOrderStatus(order, 'cancelled')" :disabled="updatingStatus === order.uuid"
-                      class="btn btn-danger btn-sm">
-                      Cancel Order
-                    </button>
-                  </div>
-
-                  <div v-if="order.status_history && order.status_history.length > 0"
-                    class="order-history mt-4 pt-4 border-t">
-                    <h4 class="font-semibold mb-2">Status History:</h4>
-                    <div class="space-y-1">
-                      <div v-for="history in order.status_history" :key="history.updated_at"
-                        class="flex flex-wrap items-center gap-2 text-sm py-1">
-                        <span class="status-badge status-created">
-                          {{ history.status }}
-                        </span>
-                        <span class="text-gray-500">
-                          {{ new Date(history.updated_at).toLocaleString() }}
-                        </span>
-                        <span v-if="history.notes" class="text-gray-600 italic">
-                          {{ history.notes }}
-                        </span>
-                        <span class="text-gray-400 text-xs">
-                          by: {{ history.updated_by }}...
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                <!-- No Orders -->
+                <div v-else-if="!loading && !error" class="text-center py-8 text-gray-500">
+                  <p>No orders found.</p>
+                  <button @click="fetchOrders" class="btn btn-primary mt-4">
+                    Refresh
+                  </button>
                 </div>
+
+                <!-- orders end -->
               </div>
             </div>
-          </template>
 
+          </div>
+        </div>
+      </template>
+      <!-- ORDERS VIEW  end-->
 
-          <!-- No Orders -->
-          <div v-else-if="!loading && !error" class="text-center py-8 text-gray-500">
-            <p>No orders found.</p>
-            <button @click="fetchOrders" class="btn btn-primary mt-4">
-              Refresh
-            </button>
+      <!-- CART / MENU VIEW -->
+      <template v-else>
+        <div class="cart-menu-layout">
+          <!-- MENU -->
+          <div class="menu-scroll">
+            <MenuPanel @add-to-cart="addToCart" />
           </div>
 
-          <!-- orders end -->
-
-
-        </div>
-      </div>
-
-      <!-- MENU + CART -->
-      <div class="side-column">
-        <!-- MENU -->
-        <div class="menu-scroll">
-          <MenuPanel @add-to-cart="addToCart" />
-        </div>
-
-        <!-- CART + CREATE ORDER -->
-        <div class="cart-area">
+          <!-- CART -->
           <div class="cart-scroll">
             <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
               @remove-all="removeAllFromCart" @clear="clearCart" />
           </div>
 
-
+          <!-- CREATE ORDER (inside main now, not footer) -->
+          <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
+            @submit="createOrder" />
         </div>
-      </div>
-
-
+      </template>
     </div>
 
     <!-- FOOTER -->
     <!-- FOOTER ACTIONS (fixed) -->
     <div class="side-footer">
-      <button @click="logout" class="btn btn-danger btn-sm">
+      <button @click="logout" class="btn btn-danger logout-btn">
         Logout
       </button>
-      <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
-
-
     </div>
+
 
   </div>
 </template>
-c
 
 
 
@@ -229,6 +252,9 @@ import CreateOrderPanel from '@/components/CreateOrderPanel.vue'
 const auth = useAuthStore()
 const router = useRouter()
 const business = useBusinessStore()
+const activeView = ref('orders')
+// 'orders' | 'cart'
+
 
 // Orders state
 const orders = ref([])

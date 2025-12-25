@@ -772,5 +772,42 @@ body {
   font-size: 1rem;
   font-weight: 600;
 }
+.view-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.orders-only {
+  height: 100%;
+  display: flex;
+}
+
+.orders-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.cart-menu-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 16px;
+  height: 100%;
+}
+
+.cart-menu-layout .menu-scroll {
+  grid-column: 1;
+  overflow-y: auto;
+}
+
+.cart-menu-layout .cart-scroll {
+  grid-column: 2;
+  overflow-y: auto;
+}
+
+.cart-menu-layout > :last-child {
+  grid-column: 1 / -1; /* Create Order full width */
+}
 
 
