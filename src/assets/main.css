@@ -681,11 +681,11 @@ body {
 /* Main content */
 .barista-dashboard > .main {
   grid-row: 2;
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
+
 
 /* Orders column scrolls */
 .barista-dashboard .orders-column {
@@ -727,6 +727,19 @@ body {
 .menu-scroll .menu-item {
   padding: 12px;
 }
+.menu-item-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.menu-item-content .price {
+  margin-top: 4px;
+}
+.menu-item .btn {
+  margin-top: auto; /* pushes button down if cards grow */
+}
+
 
 /* CART + CREATE ORDER CONTAINER */
 .cart-area {
@@ -757,20 +770,83 @@ body {
 
  /* Footer */
 .side-footer {
-  display: grid;
-  grid-template-columns: 200px 1fr; /* logout | create order */
-  gap: 16px;
+  height: 64px;
+  display: flex;
   align-items: center;
+  justify-content: flex-end; /* 👈 push content to the right */
   padding: 12px 16px;
   border-top: 1px solid var(--gray-700);
-  background: var(--bg-surface);
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.25);
+  background: var(--gray-900);
 }
+
 .logout-btn {
-  width: 100%;
+  width: 20%;
   height: 100%;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
+}
+.view-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.orders-only {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.orders-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  padding-bottom: 80px; /* space for footer */
+}
+.cart-menu-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 16px;
+  overflow: hidden;
+}
+
+/* MENU */
+.cart-menu-layout .menu-scroll {
+  grid-column: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* CART */
+.cart-menu-layout .cart-scroll {
+  grid-column: 2;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* CREATE ORDER */
+.cart-menu-layout > :last-child {
+  grid-column: 1 / -1;
+  position: sticky;
+  bottom: 0;
+  background: var(--gray-800);
+  padding-top: 12px;
 }
 
 
+/* cart component */
+.cart-panel {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-cart {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0.85;
+}
