@@ -15,10 +15,18 @@
 
 
   <div v-if="menu && !loading">
+
     <div class="menu-header card p-4 mb-6">
-      <p><strong>Menu Info:</strong> {{ menu.menu_info }}</p>
-      <p class="text-sm text-gray-500 mt-1">Updated: {{ new Date(menu.updated_at).toLocaleDateString() }}</p>
+      <p class="font-semibold">
+        {{ props.mode === 'edit' ? 'Editing Order Menu' : 'Create Order Menu' }}
+      </p>
+      <p class="text-sm text-gray-500 mt-1">
+        Updated: {{ new Date(menu.updated_at).toLocaleDateString() }}
+      </p>
     </div>
+
+
+
     <div class="menu-items grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
       <div v-for="item in menu.items" :key="item.name" class="menu-item card p-4">
         <!-- elementos de el menu -->
@@ -30,8 +38,9 @@
           </p>
 
           <button class="btn btn-primary btn-sm w-full" @click="emit('add-to-cart', item)">
-            Add to Order
+            {{ props.mode === 'edit' ? 'Add to Order' : 'Add to Cart' }}
           </button>
+
         </div>
 
 
@@ -52,6 +61,12 @@ const menu = ref(null)
 const loading = ref(false)
 const error = ref(null)
 
+const props = defineProps({
+  mode: {
+    type: String,
+    default: 'create', // 'create' | 'edit'
+  },
+})
 
 async function fetchMenu() {
   loading.value = true
