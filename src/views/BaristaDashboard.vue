@@ -211,10 +211,17 @@
       <!-- CART / MENU VIEW -->
       <template v-else>
         <div class="cart-menu-layout">
+
           <!-- MENU -->
           <div class="menu-scroll">
-            <MenuPanel @add-to-cart="addToCart" />
+            <MenuPanel :key="editingOrder ? 'edit-menu' : 'create-menu'" :mode="editingOrder ? 'edit' : 'create'"
+              @add-to-cart="handleAddFromMenu" />
+
+
+
           </div>
+          <!-- MENU -->
+
 
 
           <!-- CART -->
@@ -575,10 +582,21 @@ function startEditOrder(order) {
   activeView.value = 'cart' // reuse Cart/Menu view
 }
 function addToEditCart(item) {
+  console.log('ADD TO EDIT CART:', item)
   const existing = editCart.value.find(i => i.name === item.name)
-  if (existing) existing.qty++
-  else editCart.value.push({ name: item.name, qty: 1 })
+
+  if (existing) {
+    existing.qty++
+  } else {
+    editCart.value.push({
+      name: item.name,
+      qty: 1,
+      unit_price: item.unit_price ?? item.price
+    })
+  }
 }
+
+
 
 function removeFromEditCart(name) {
   const index = editCart.value.findIndex(i => i.name === name)
@@ -634,6 +652,19 @@ function cancelEdit() {
   editNote.value = ''
   activeView.value = 'orders'
 }
+function handleAddFromMenu(item) {
+  console.log('MENU ITEM CLICKED:', item)
+
+  if (editingOrder.value) {
+    addToEditCart(item)
+  } else {
+    addToCart(item)
+  }
+}
+function removeAllFromEditCart(name) {
+  editCart.value = editCart.value.filter(i => i.name !== name)
+}
+
 
 
 
