@@ -105,6 +105,37 @@
 
           </div>
         </div>
+
+        <!-- cancel order -->
+        <!-- 🔴 KEEP YOUR EXISTING MODAL CODE BELOW EXACTLY AS IS -->
+
+        <!-- Cancel Order Modal -->
+        <div v-if="showCancelModal" class="modal-overlay">
+          <div class="modal">
+            <div class="modal-header flex justify-between items-center p-6 border-b">
+              <h3 class="text-xl font-bold text-red-600">Cancel Order</h3> <button @click="closeCancelModal"
+                class="modal-close-btn btn btn-secondary btn-sm p-2 rounded-full"> × </button>
+            </div>
+            <div class="modal-content p-6">
+              <p class="mb-4">Are you sure you want to cancel order <strong>#{{ orderToCancel?.uuid?.substring(0, 8)
+                  }}</strong>?</p>
+              <p class="mb-2"><strong>Status:</strong> {{ orderToCancel?.current_status }}</p>
+              <p class="mb-6"><strong>Total:</strong> ${{ orderToCancel?.solicitud?.total }} MXN</p>
+              <div class="cancel-note mb-6"> <label for="cancelNote" class="form-label">Reason for cancellation
+                  (optional):</label> <textarea id="cancelNote" v-model="cancelNote"
+                  placeholder="E.g. Changed my mind, too long wait time, etc." rows="3"
+                  class="form-input w-full"></textarea> </div>
+              <div v-if="cancelError" class="error-box mb-6"> {{ cancelError }} </div>
+            </div>
+            <div class="modal-actions flex justify-end gap-4 p-6 border-t"> <button @click="closeCancelModal"
+                class="btn btn-secondary"> No, Keep Order </button> <button @click="confirmCancelOrder"
+                :disabled="cancelingOrder" class="btn btn-danger"> {{ cancelingOrder ? 'Cancelling...' :
+                'Yes,CancelOrder' }} </button>
+            </div>
+          </div>
+        </div>
+        <!-- cancel order -->
+
       </div>
     </template>
 
@@ -126,7 +157,6 @@
         <!-- CREATE ORDER -->
         <CreateOrderPanel v-model:note="orderNote" v-model:name_client="orderName"
           :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
-
       </div>
     </template>
 
@@ -138,9 +168,6 @@
         Logout
       </button>
     </div>
-
-    <!-- Cancel Modal (unchanged) -->
-    <!-- 🔴 KEEP YOUR EXISTING MODAL CODE BELOW EXACTLY AS IS -->
   </div>
 </template>
 
@@ -207,10 +234,10 @@ async function fetchMenu() {
 
   try {
     const response = await api.get('/api/menus', {
-  headers: {
-    'X-Business-Code': business.businessCode
-  }
-})
+      headers: {
+        'X-Business-Code': business.businessCode
+      }
+    })
 
 
     menu.value = response.data

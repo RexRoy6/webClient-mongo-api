@@ -43,7 +43,7 @@ export const useAuthStore = defineStore('auth', {
     guest_name
   })
 
-  console.log('[AUTH] loginClient response', data)
+  //console.log('[AUTH] loginClient response', data)
 
   const role = data.user.role
   this.saveSession(data.access_token, role)
@@ -55,7 +55,7 @@ export const useAuthStore = defineStore('auth', {
     room_key
   }
 
-  console.log('[AUTH] guest saved', this.guest)
+  //console.log('[AUTH] guest saved', this.guest)
 
   localStorage.setItem('guest', JSON.stringify(this.guest))
   localStorage.removeItem('staffUser')
