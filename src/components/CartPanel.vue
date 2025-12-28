@@ -63,17 +63,32 @@ const cartItemCount = computed(() =>
           <span>${{ item.unit_price * item.qty }}</span>
         </div>
 
-        <div class="flex items-center justify-between mt-3 sm:justify-start sm:gap-2">
+        <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <!-- Qty controls -->
+
           <div class="flex items-center gap-3">
-            <button class="btn btn-sm px-3" @click="emit('remove', item.name)">−</button>
-            <span class="font-medium">{{ item.qty }}</span>
-            <button class="btn btn-sm px-3" @click="emit('add', item)">+</button>
+            <button class="btn btn-sm px-4 py-2 text-lg font-bold" @click="emit('remove', item.name)">
+              −
+            </button>
+
+            <span class="text-lg font-semibold w-6 text-center">
+              {{ item.qty }}
+            </span>
+
+            <button class="btn btn-sm px-4 py-2 text-lg font-bold" @click="emit('add', item)">
+              +
+            </button>
           </div>
 
-          <button class="btn btn-danger btn-sm px-3 sm:ml-2" @click="emit('remove-all', item.name)">
+
+          <!-- Remove button (below) -->
+          <button class="text-xs text-red-400 hover:text-red-300 underline" @click="emit('remove-all', item.name)">
             Remove
           </button>
+
+
         </div>
+
 
       </div>
 
