@@ -147,6 +147,12 @@
 
 <!-- Keep the same <script> section -->
 <script setup>
+//temp
+// console.log('[CLIENT DASHBOARD] auth.token', auth.token)
+// console.log('[CLIENT DASHBOARD] auth.userType', auth.userType)
+// console.log('[CLIENT DASHBOARD] auth.guest', auth.guest)
+// console.log('[CLIENT DASHBOARD] businessCode', business.businessCode)
+//temp
 import { useAuthStore } from '@/stores/auth'
 import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
@@ -200,7 +206,12 @@ async function fetchMenu() {
   error.value = null
 
   try {
-    const response = await api.get('/api/menus')
+    const response = await api.get('/api/menus', {
+  headers: {
+    'X-Business-Code': business.businessCode
+  }
+})
+
 
     menu.value = response.data
   } catch (err) {
@@ -273,7 +284,7 @@ async function createOrder() {
   orderSuccess.value = null
 
   const orderData = {
-    menu_key: menuKey.value,
+    menu_key: 'default',
     solicitud: {
       items: cart.value.map(item => ({
         name: item.name,

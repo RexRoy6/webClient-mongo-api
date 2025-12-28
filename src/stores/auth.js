@@ -37,30 +37,31 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async loginClient(room_number, room_key, guest_name) {
-      const { data } = await api.post('api/auth/client/login', {
-        room_number,
-        room_key,
-        guest_name
-      })
+  const { data } = await api.post('api/auth/client/login', {
+    room_number,
+    room_key,
+    guest_name
+  })
 
-      const role = data.user.role // "client"
+  console.log('[AUTH] loginClient response', data)
 
-      // Save token + role
-      this.saveSession(data.access_token, role)
+  const role = data.user.role
+  this.saveSession(data.access_token, role)
 
-      // ✅ Save guest EXACTLY as backend expects
-      this.guest = {
-        role,
-        guest_name: data.user.guest_name,
-        room_number: data.user.room_number,
-        room_key // IMPORTANT: comes from login input
-      }
+  this.guest = {
+    role,
+    guest_name: data.user.guest_name,
+    room_number: data.user.room_number,
+    room_key
+  }
 
-      localStorage.setItem('guest', JSON.stringify(this.guest))
-      localStorage.removeItem('staffUser')
+  console.log('[AUTH] guest saved', this.guest)
 
-      return data
-    },
+  localStorage.setItem('guest', JSON.stringify(this.guest))
+  localStorage.removeItem('staffUser')
+
+  return data
+},
 
 
     async loginStaff(staff_number, staff_key) {
@@ -146,5 +147,16 @@ export const useAuthStore = defineStore('auth', {
       if (this.userType === 'kitchen') return this.staffUser
       return null
     }
-  }
+  },
+
+
+  //temp
+  saveSession(token, userType) {
+  console.log('[AUTH] saveSession', { token, userType })
+  this.token = token
+  this.userType = userType
+  localStorage.setItem('token', token)
+  localStorage.setItem('userType', userType)
+}
+//temp
 })
