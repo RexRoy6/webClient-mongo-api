@@ -1,12 +1,24 @@
 import { defineStore } from 'pinia'
 import api from '@/api/apiClient'
 
+
+function safeParse(key) {
+  try {
+    const value = localStorage.getItem(key)
+    return value ? JSON.parse(value) : null
+  } catch {
+    localStorage.removeItem(key)
+    return null
+  }
+}
+
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token'),
     userType: localStorage.getItem('userType'),
-    guest: JSON.parse(localStorage.getItem('guest')),
-    staffUser: JSON.parse(localStorage.getItem('staffUser'))
+    guest: safeParse('guest'),
+    staffUser: safeParse('staffUser')
   }),
 
   actions: {
