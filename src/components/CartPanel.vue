@@ -30,18 +30,19 @@ const cartItemCount = computed(() =>
 </script>
 
 <template>
-  <div class="card cart-panel">
+  <div class="card cart-panel w-full md:w-auto">
+
     <!-- Header -->
-    <div class="flex justify-between mb-4">
-      <h3 class="font-bold">
+    <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-4">
+      <h3 class="font-bold text-lg">
         {{ title }} ({{ cartItemCount }})
       </h3>
 
-
-      <button v-if="cart.length" class="btn btn-danger btn-sm" @click="emit('clear')">
+      <button v-if="cart.length" class="btn btn-danger btn-sm self-start sm:self-auto" @click="emit('clear')">
         Clear
       </button>
     </div>
+
 
     <!-- EMPTY CART STATE -->
     <div v-if="!cart.length" class="empty-cart">
@@ -55,25 +56,31 @@ const cartItemCount = computed(() =>
 
     <!-- CART ITEMS -->
     <template v-else>
-      <div v-for="item in cart" :key="item.name" class="mb-3">
+      <div v-for="item in cart" :key="item.name" class="mb-4 pb-4 border-b border-gray-700 last:border-b-0">
+
         <div class="flex justify-between">
           <strong>{{ item.name }}</strong>
           <span>${{ item.unit_price * item.qty }}</span>
         </div>
 
-        <div class="flex gap-2 mt-2">
-          <button class="btn btn-sm" @click="emit('remove', item.name)">−</button>
-          <span>{{ item.qty }}</span>
-          <button class="btn btn-sm" @click="emit('add', item)">+</button>
-          <button class="btn btn-danger btn-sm" @click="emit('remove-all', item.name)">
-            ×
+        <div class="flex items-center justify-between mt-3 sm:justify-start sm:gap-2">
+          <div class="flex items-center gap-3">
+            <button class="btn btn-sm px-3" @click="emit('remove', item.name)">−</button>
+            <span class="font-medium">{{ item.qty }}</span>
+            <button class="btn btn-sm px-3" @click="emit('add', item)">+</button>
+          </div>
+
+          <button class="btn btn-danger btn-sm px-3 sm:ml-2" @click="emit('remove-all', item.name)">
+            Remove
           </button>
         </div>
+
       </div>
 
-      <div class="font-bold text-right mt-4">
+      <div class="font-bold text-right mt-4 pt-3 border-t border-gray-700">
         Total: ${{ total }} MXN
       </div>
+
     </template>
   </div>
 </template>
