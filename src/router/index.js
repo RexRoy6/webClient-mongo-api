@@ -162,11 +162,11 @@ router.beforeEach(async (to) => {
     }
 
     // 🔥 CLIENT-SPECIFIC CHECK
-    if (to.meta.role === 'client' && !auth.guest) {
-      console.warn('Client auth invalid: missing guest')
-      auth.logout()
-      return '/client/login'
-    }
+    // if (to.meta.role === 'client' && !auth.guest) {
+    //   console.warn('Client auth invalid: missing guest')
+    //   auth.logout()
+    //   return '/client/login'
+    // }
 
     if (to.meta.role && auth.userType !== to.meta.role) {
       if (auth.userType === 'client') return '/client/dashboard'

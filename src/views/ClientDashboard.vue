@@ -165,7 +165,7 @@ const business = useBusinessStore()
 const menu = ref(null)
 const loading = ref(false)
 const error = ref(null)
-const menuKey = ref(business.currentBusiness.key)//aqui sacarlo de business
+const menuKey = computed(() => business.businessKey)
 const activeView = ref('orders')
 
 
