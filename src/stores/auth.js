@@ -1,12 +1,24 @@
 import { defineStore } from 'pinia'
 import api from '@/api/apiClient'
 
+
+function safeParse(key) {
+  try {
+    const value = localStorage.getItem(key)
+    return value ? JSON.parse(value) : null
+  } catch {
+    localStorage.removeItem(key)
+    return null
+  }
+}
+
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token'),
     userType: localStorage.getItem('userType'),
-    guest: JSON.parse(localStorage.getItem('guest')),
-    staffUser: JSON.parse(localStorage.getItem('staffUser'))
+    guest: safeParse('guest'),
+    staffUser: safeParse('staffUser')
   }),
 
   actions: {
@@ -25,46 +37,56 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async loginClient(room_number, room_key, guest_name) {
-      const { data } = await api.post('api/auth/client/login', {
-        room_number,
-        room_key,
-        guest_name
-      })
-
-      this.saveSession(data.access_token, 'client')
-
-      this.guest = { ...data.user, room_key }
-      this.staffUser = null
-
-      localStorage.setItem('guest', JSON.stringify(this.guest))
-      localStorage.removeItem('staffUser')
-
-      return data
-    },
-
-async loginStaff(staff_number, staff_key) {
-  const { data } = await api.post('api/auth/staff/login', {
-    staff_number,
-    staff_key
+  const { data } = await api.post('api/auth/client/login', {
+    room_number,
+    room_key,
+    guest_name
   })
 
-  // 🔑 use role from backend
-  const role = data.user.role // "kitchen" | "barista"
+  //console.log('[AUTH] loginClient response', data)
 
+  const role = data.user.role
   this.saveSession(data.access_token, role)
 
-  this.staffUser = {
+  this.guest = {
     role,
-    name: data.user.name,
-    staff_number,
-    staff_key
+    guest_name: data.user.guest_name,
+    room_number: data.user.room_number,
+    room_key
   }
 
-  localStorage.setItem('staffUser', JSON.stringify(this.staffUser))
-  localStorage.removeItem('guest')
+  //console.log('[AUTH] guest saved', this.guest)
+
+  localStorage.setItem('guest', JSON.stringify(this.guest))
+  localStorage.removeItem('staffUser')
 
   return data
 },
+
+
+    async loginStaff(staff_number, staff_key) {
+      const { data } = await api.post('api/auth/staff/login', {
+        staff_number,
+        staff_key
+      })
+
+      // 🔑 use role from backend
+      const role = data.user.role // "kitchen" | "barista"
+
+      this.saveSession(data.access_token, role)
+
+      this.staffUser = {
+        role,
+        name: data.user.name,
+        staff_number,
+        staff_key
+      }
+
+      localStorage.setItem('staffUser', JSON.stringify(this.staffUser))
+      localStorage.removeItem('guest')
+
+      return data
+    },
 
 
 
@@ -107,17 +129,17 @@ async loginStaff(staff_number, staff_key) {
     },
 
     async smartLogout() {
-  if (this.userType === 'client') {
-    return await this.logoutClient()
-  }
+      if (this.userType === 'client') {
+        return await this.logoutClient()
+      }
 
-  if (this.userType === 'kitchen' || this.userType === 'barista' || this.userType === 'admin') {
-    return await this.logoutKitchen()
-  }
+      if (this.userType === 'kitchen' || this.userType === 'barista' || this.userType === 'admin') {
+        return await this.logoutKitchen()
+      }
 
-  // fallback
-  this.logout()
-},
+      // fallback
+      this.logout()
+    },
 
 
     getCurrentUser() {
@@ -125,5 +147,16 @@ async loginStaff(staff_number, staff_key) {
       if (this.userType === 'kitchen') return this.staffUser
       return null
     }
-  }
+  },
+
+
+  //temp
+  saveSession(token, userType) {
+  console.log('[AUTH] saveSession', { token, userType })
+  this.token = token
+  this.userType = userType
+  localStorage.setItem('token', token)
+  localStorage.setItem('userType', userType)
+}
+//temp
 })

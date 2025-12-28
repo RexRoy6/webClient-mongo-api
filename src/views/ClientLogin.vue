@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useBusinessStore } from '@/stores/business'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -17,15 +18,16 @@ async function login() {
   loading.value = true
 
   try {
-    const response = await auth.loginClient(
+    const data = await auth.loginClient(
       Number(roomNumber.value),
       Number(roomKey.value),
       guestName.value
     )
 
-    //console.log('Logged in:', response)
+    // ✅ THIS WAS MISSING
+    const businessStore = useBusinessStore()
+    businessStore.setBusinessFromAuth(data.business)
 
-    // ⭐ Redirect to dashboard
     router.push('/client/dashboard')
   } catch (error) {
     errorMsg.value = error.message || 'Login failed'
@@ -33,6 +35,7 @@ async function login() {
     loading.value = false
   }
 }
+
 </script>
 
 <template>
@@ -55,56 +58,26 @@ async function login() {
         <!-- Room Number -->
         <div class="form-group mb-4">
           <label for="roomNumber" class="form-label">Room Number</label>
-          <input 
-            id="roomNumber"
-            v-model="roomNumber" 
-            type="number" 
-            placeholder="e.g., 101"
-            required
-            autocomplete="off"
-            inputmode="numeric"
-            class="form-input"
-            :disabled="loading"
-          />
+          <input id="roomNumber" v-model="roomNumber" type="number" placeholder="e.g., 101" required autocomplete="off"
+            inputmode="numeric" class="form-input" :disabled="loading" />
         </div>
 
         <!-- Room Key -->
         <div class="form-group mb-4">
           <label for="roomKey" class="form-label">Room Key</label>
-          <input 
-            id="roomKey"
-            v-model="roomKey" 
-            type="number" 
-            placeholder="e.g., 1234"
-            required
-            autocomplete="off"
-            inputmode="numeric"
-            class="form-input"
-            :disabled="loading"
-          />
+          <input id="roomKey" v-model="roomKey" type="number" placeholder="e.g., 1234" required autocomplete="off"
+            inputmode="numeric" class="form-input" :disabled="loading" />
         </div>
 
         <!-- Guest Name -->
         <div class="form-group mb-6">
           <label for="guestName" class="form-label">Your Name</label>
-          <input 
-            id="guestName"
-            v-model="guestName" 
-            type="text" 
-            placeholder="Enter your name"
-            required
-            autocomplete="name"
-            class="form-input"
-            :disabled="loading"
-          />
+          <input id="guestName" v-model="guestName" type="text" placeholder="Enter your name" required
+            autocomplete="name" class="form-input" :disabled="loading" />
         </div>
 
         <!-- Login Button -->
-        <button 
-          type="submit" 
-          class="btn btn-xl w-full login-btn mb-6"
-          :disabled="loading"
-        >
+        <button type="submit" class="btn btn-xl w-full login-btn mb-6" :disabled="loading">
           <span v-if="loading" class="spinner mr-2"></span>
           <span>{{ loading ? 'Logging in...' : 'Log In' }}</span>
         </button>
@@ -142,7 +115,9 @@ async function login() {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Remove number input spinners */
