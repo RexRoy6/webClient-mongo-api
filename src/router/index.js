@@ -120,7 +120,7 @@ router.beforeEach(async (to) => {
 
   // 🏠 ROOT AUTO-REDIRECT
   if (to.path === '/' && business.hasBusinessContext && auth.token && auth.userType) {
-    if (auth.userType === 'client') return '/client/dashboard'
+    if (auth.userType === 'client' && auth.guest) return '/client/dashboard'
     if (auth.userType === 'kitchen') return '/kitchen/dashboard'
     if (auth.userType === 'barista') return '/barista/dashboard'
   }
@@ -158,6 +158,13 @@ router.beforeEach(async (to) => {
   // 🔑 AUTH GUARD
   if (to.meta.requiresAuth) {
     if (!auth.token) {
+      return '/select-login'
+    }
+
+    // 🔥 CLIENT-SPECIFIC CHECK
+    if (to.meta.role === 'client' && !auth.guest) {
+      console.warn('Client auth invalid: missing guest')
+      auth.logout()
       return '/client/login'
     }
 

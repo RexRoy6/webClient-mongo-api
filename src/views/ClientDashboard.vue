@@ -263,44 +263,44 @@ const cartItemCount = computed(() => {
 
 // Order functions
 async function createOrder() {
-  if (cart.value.length === 0) {
+  if (!cart.value.length) {
     orderError.value = 'Your cart is empty'
     return
   }
-
-  // console.log('info user/guest:', auth.guest)
 
   creatingOrder.value = true
   orderError.value = null
   orderSuccess.value = null
 
-  try {
-    const orderData = {
-      menu_key: menuKey.value,
-      solicitud: {
-        items: cart.value.map(item => ({
-          name: item.name,
-          qty: item.qty
-        })),
-        note: orderNote.value.trim() || undefined,
-        currency: 'mxn'
-      }
+  const orderData = {
+    menu_key: menuKey.value,
+    solicitud: {
+      items: cart.value.map(item => ({
+        name: item.name,
+        qty: item.qty
+      })),
+      note: orderNote.value?.trim() || undefined,
+      name: orderName.value || undefined,
+      currency: 'mxn'
     }
+  }
 
+  try {
     const response = await api.post('/api/orders', orderData)
 
     orderSuccess.value = response.data
     clearCart()
-
-    // Refresh orders list
     fetchOrders()
   } catch (err) {
-    orderError.value = err.response?.data?.message || 'Failed to create order'
-    console.error('Error creating order:', err)
+    console.error('Order error:', err.response)
+    orderError.value =
+      err.response?.data?.message ||
+      `Order failed (${err.response?.status})`
   } finally {
     creatingOrder.value = false
   }
 }
+
 
 async function fetchOrders() {
   loadingOrders.value = true

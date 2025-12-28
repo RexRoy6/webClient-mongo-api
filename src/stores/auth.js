@@ -31,10 +31,18 @@ export const useAuthStore = defineStore('auth', {
         guest_name
       })
 
-      this.saveSession(data.access_token, 'client')
+      const role = data.user.role // "client"
 
-      this.guest = { ...data.user, room_key }
-      this.staffUser = null
+      // Save token + role
+      this.saveSession(data.access_token, role)
+
+      // ✅ Save guest EXACTLY as backend expects
+      this.guest = {
+        role,
+        guest_name: data.user.guest_name,
+        room_number: data.user.room_number,
+        room_key // IMPORTANT: comes from login input
+      }
 
       localStorage.setItem('guest', JSON.stringify(this.guest))
       localStorage.removeItem('staffUser')
@@ -42,29 +50,30 @@ export const useAuthStore = defineStore('auth', {
       return data
     },
 
-async loginStaff(staff_number, staff_key) {
-  const { data } = await api.post('api/auth/staff/login', {
-    staff_number,
-    staff_key
-  })
 
-  // 🔑 use role from backend
-  const role = data.user.role // "kitchen" | "barista"
+    async loginStaff(staff_number, staff_key) {
+      const { data } = await api.post('api/auth/staff/login', {
+        staff_number,
+        staff_key
+      })
 
-  this.saveSession(data.access_token, role)
+      // 🔑 use role from backend
+      const role = data.user.role // "kitchen" | "barista"
 
-  this.staffUser = {
-    role,
-    name: data.user.name,
-    staff_number,
-    staff_key
-  }
+      this.saveSession(data.access_token, role)
 
-  localStorage.setItem('staffUser', JSON.stringify(this.staffUser))
-  localStorage.removeItem('guest')
+      this.staffUser = {
+        role,
+        name: data.user.name,
+        staff_number,
+        staff_key
+      }
 
-  return data
-},
+      localStorage.setItem('staffUser', JSON.stringify(this.staffUser))
+      localStorage.removeItem('guest')
+
+      return data
+    },
 
 
 
@@ -107,17 +116,17 @@ async loginStaff(staff_number, staff_key) {
     },
 
     async smartLogout() {
-  if (this.userType === 'client') {
-    return await this.logoutClient()
-  }
+      if (this.userType === 'client') {
+        return await this.logoutClient()
+      }
 
-  if (this.userType === 'kitchen' || this.userType === 'barista' || this.userType === 'admin') {
-    return await this.logoutKitchen()
-  }
+      if (this.userType === 'kitchen' || this.userType === 'barista' || this.userType === 'admin') {
+        return await this.logoutKitchen()
+      }
 
-  // fallback
-  this.logout()
-},
+      // fallback
+      this.logout()
+    },
 
 
     getCurrentUser() {
