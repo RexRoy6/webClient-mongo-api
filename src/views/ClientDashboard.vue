@@ -124,10 +124,8 @@
         </div>
 
         <!-- CREATE ORDER -->
-        <div class="mt-4">
-          <CreateOrderPanel v-model:note="orderNote" :disabled="cart.length === 0 || creatingOrder"
-            @submit="createOrder" />
-        </div>
+        <CreateOrderPanel v-model:note="orderNote" v-model:name_client="orderName"
+          :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
 
       </div>
     </template>
@@ -135,7 +133,7 @@
     <!-- ================= CART / MENU VIEW ================= -->
 
     <!-- FOOTER -->
-    <div class="side-footer mt-6">
+    <div class="side-footer">
       <button @click="logout" class="btn btn-danger">
         Logout
       </button>
@@ -174,6 +172,8 @@ const activeView = ref('orders')
 // Cart state
 const cart = ref([])
 const orderNote = ref('')
+const orderName = ref('')
+
 
 // Order history state
 const orders = ref([])
