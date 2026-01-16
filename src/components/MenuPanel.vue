@@ -18,9 +18,16 @@
 
     <div class="menu-header card p-4 mb-6">
       <p class="font-semibold">
-        {{ props.mode === 'edit' ? 'Editing Order Menu' : 'Create Order Menu' }}
+        {{ props.mode === 'edit' ? 'Editing Order' : 'Create Order' }}
       </p>
       <p class="text-sm text-gray-500 mt-1">
+        menu name: {{ menuName }}
+      </p>
+        <p class="text-sm text-gray-500 mt-1">
+        current menu: {{ menuDescription }}
+      </p>
+
+       <p class="text-sm text-gray-500 mt-1">
         Updated: {{ new Date(menu.updated_at).toLocaleDateString() }}
       </p>
     </div>
@@ -57,7 +64,11 @@ import { useBusinessStore } from '@/stores/business'
 const business = useBusinessStore()
 const emit = defineEmits(['add-to-cart'])
 
+//VALORES DEL menu
 const menu = ref(null)
+const menuName =ref(null)
+const menuDescription = ref(null)
+
 const loading = ref(false)
 const error = ref(null)
 
@@ -80,6 +91,8 @@ async function fetchMenu() {
     })
 
     menu.value = response.data
+    menuName.value = response.data.menu_key
+    menuDescription.value = response.data.menu_info
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load menu'
     console.error('Error fetching menu:', err)
