@@ -426,7 +426,8 @@ async function createOrder() {
       solicitud: {
         items: cart.value.map(i => ({
           name: i.name,
-          qty: i.qty
+          qty: i.qty,
+          options: i.options
         })),
         note: orderNote.value || undefined,
         name: orderName.value || undefined,
@@ -544,7 +545,12 @@ const filteredOrders = computed(() => {
   return orders.value.filter(order => order.current_status === filterStatus.value)
 })
 function addToCart(item) {
-  const existing = cart.value.find(i => i.name === item.name)
+  const signature = JSON.stringify(item.selectedOptions || {})
+
+  const existing = cart.value.find(i =>
+    i.name === item.name &&
+    JSON.stringify(i.options || {}) === signature
+  )
 
   if (existing) {
     existing.qty++
@@ -552,10 +558,12 @@ function addToCart(item) {
     cart.value.push({
       name: item.name,
       qty: 1,
-      unit_price: item.unit_price ?? item.price
+      unit_price: item.price,
+      options: item.selectedOptions || {}
     })
   }
 }
+
 
 function removeFromCart(name) {
   const index = cart.value.findIndex(i => i.name === name)
@@ -665,13 +673,13 @@ function cancelEdit() {
   activeView.value = 'orders'
 }
 function handleAddFromMenu(item) {
-
   if (editingOrder.value) {
     addToEditCart(item)
   } else {
     addToCart(item)
   }
 }
+
 function removeAllFromEditCart(name) {
   editCart.value = editCart.value.filter(i => i.name !== name)
 }

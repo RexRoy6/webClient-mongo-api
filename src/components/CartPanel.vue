@@ -62,6 +62,15 @@ const cartItemCount = computed(() =>
           <strong>{{ item.name }}</strong>
           <span>${{ item.unit_price * item.qty }}</span>
         </div>
+        
+
+        <div v-if="item.options" class="text-xs text-gray-400">
+  <div v-for="(value, key) in item.options" :key="key">
+    {{ key }}: {{ value }}
+  </div>
+</div>
+
+
 
         <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <!-- Qty controls -->

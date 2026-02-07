@@ -23,11 +23,11 @@
       <p class="text-sm text-gray-500 mt-1">
         menu name: {{ menuName }}
       </p>
-        <p class="text-sm text-gray-500 mt-1">
+      <p class="text-sm text-gray-500 mt-1">
         current menu: {{ menuDescription }}
       </p>
 
-       <p class="text-sm text-gray-500 mt-1">
+      <p class="text-sm text-gray-500 mt-1">
         Updated: {{ new Date(menu.updated_at).toLocaleDateString() }}
       </p>
     </div>
@@ -37,6 +37,8 @@
     <div class="menu-items grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
       <div v-for="item in menu.items" :key="item.name" class="menu-item card p-4">
         <!-- elementos de el menu -->
+
+
         <div class="menu-item-content">
           <h4 class="font-medium capitalize">{{ item.name }}</h4>
 
@@ -44,7 +46,11 @@
             ${{ item.price }} MXN
           </p>
 
-          <button class="btn btn-primary btn-sm w-full" @click="emit('add-to-cart', item)">
+          <span v-if="item.options && Object.keys(item.options).length" class="text-xs text-gray-500">
+            Customizable
+          </span>
+
+          <button class="btn btn-primary btn-sm w-full" @click="handleAdd(item)">
             {{ props.mode === 'edit' ? 'Add to Order' : 'Add to Cart' }}
           </button>
 
@@ -52,25 +58,84 @@
 
 
 
+
       </div>
     </div>
   </div>
+
+  <!-- OPTIONS MODAL -->
+  <div v-if="showOptions" class="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40">
+    <div class="bg-white w-full md:max-w-md rounded-t-xl md:rounded-xl p-5">
+
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold capitalize">
+          {{ activeItem.name }}
+        </h3>
+        <button class="text-gray-500" @click="showOptions = false">✕</button>
+      </div>
+
+      <!-- OPTIONS -->
+      <div class="space-y-4">
+        <div v-for="(option, key) in activeItem.options" :key="key">
+          <p class="font-medium capitalize mb-2">
+            {{ key }}
+          </p>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button v-for="value in option.values" :key="value" class="btn btn-sm" :class="selectedOptions[key] === value
+              ? 'btn-primary'
+              : 'btn-secondary'" @click="selectedOptions[key] = value">
+              {{ value }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="mt-6 flex gap-3">
+        <button class="btn btn-primary flex-1" :disabled="!allOptionsSelected" @click="confirmOptions">
+          Add to Cart
+        </button>
+
+        <button class="btn btn-secondary" @click="showOptions = false">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+
 </template>
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/api/apiClient'
 import { useBusinessStore } from '@/stores/business'
+import { computed } from 'vue'
 
 const business = useBusinessStore()
 const emit = defineEmits(['add-to-cart'])
 
 //VALORES DEL menu
 const menu = ref(null)
-const menuName =ref(null)
+const menuName = ref(null)
 const menuDescription = ref(null)
 
 const loading = ref(false)
 const error = ref(null)
+
+const showOptions = ref(false)
+const activeItem = ref(null)
+const selectedOptions = ref({})
+
+const allOptionsSelected = computed(() => {
+  if (!activeItem.value || !activeItem.value.options) return true
+
+  return Object.keys(activeItem.value.options).every(
+    key => selectedOptions.value[key]
+  )
+})
+
 
 const props = defineProps({
   mode: {
@@ -100,6 +165,33 @@ async function fetchMenu() {
     loading.value = false
   }
 }
+
+function handleAdd(item) {
+  if (item.options && Object.keys(item.options).length) {
+    openOptionsModal(item)
+  } else {
+    emit('add-to-cart', item)
+  }
+}
+
+
+function openOptionsModal(item) {
+  activeItem.value = item
+  selectedOptions.value = {}
+  showOptions.value = true
+}
+
+function confirmOptions() {
+  emit('add-to-cart', {
+    ...activeItem.value,
+    selectedOptions: { ...selectedOptions.value }
+  })
+
+  showOptions.value = false
+  activeItem.value = null
+}
+
+
 
 // Initialize
 onMounted(() => {
