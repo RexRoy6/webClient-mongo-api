@@ -34,43 +34,46 @@
 
 
 
-    <div class="menu-items grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-      <div v-for="item in menu.items" :key="item.name" class="menu-item card p-4">
-        <!-- elementos de el menu -->
+    <div class="space-y-6">
 
-
-        <div class="menu-item-content">
-          <h4 class="font-medium capitalize">{{ item.name }}</h4>
-
-          <p class="price text-primary-blue font-bold text-lg mb-3">
-            ${{ item.price }} MXN
-          </p>
-
-          <span v-if="item.options && Object.keys(item.options).length" class="text-xs text-gray-500">
-            Customizable
+      <div v-for="(items, category) in groupedItems" :key="category" class="category-block">
+        <!-- CATEGORY HEADER -->
+        <button
+          class="w-full flex justify-between items-center px-4 py-3 bg-gray-100 rounded-lg font-semibold capitalize"
+          @click="toggleCategory(category)">
+          <span>{{ category }}</span>
+          <span>
+            {{ openCategories[category] ? '−' : '+' }}
           </span>
+        </button>
 
-          <button class="btn btn-primary btn-sm w-full" @click="handleAdd(item)">
-            {{ props.mode === 'edit' ? 'Add to Order' : 'Add to Cart' }}
-          </button>
+        <!-- ITEMS -->
+        <div v-if="openCategories[category]" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          <div v-for="item in items" :key="item.name" class="menu-item card p-4">
+            <h4 class="font-medium capitalize">{{ item.name }}</h4>
 
+            <p class="price text-primary-blue font-bold text-lg mb-3">
+              ${{ item.price }} MXN
+            </p>
+
+            <span v-if="item.options && Object.keys(item.options).length" class="text-xs text-gray-500">
+              Customizable
+            </span>
+
+            <button class="btn btn-primary btn-sm w-full" @click="handleAdd(item)">
+              {{ props.mode === 'edit' ? 'Add to Order' : 'Add to Cart' }}
+            </button>
+          </div>
         </div>
-
-
-
-
       </div>
+
     </div>
+
   </div>
 
   <!-- OPTIONS MODAL -->
-  <MenuOptions
-  :open="showOptions"
-  :item="activeItem"
-  v-model="selectedOptions"
-  @confirm="confirmOptions"
-  @close="showOptions = false"
-/>
+  <MenuOptions :open="showOptions" :item="activeItem" v-model="selectedOptions" @confirm="confirmOptions"
+    @close="showOptions = false" />
 
 
 
@@ -90,6 +93,10 @@ const menu = ref(null)
 const menuName = ref(null)
 const menuDescription = ref(null)
 
+//menu categories
+const openCategories = ref({})
+
+
 const loading = ref(false)
 const error = ref(null)
 
@@ -104,6 +111,23 @@ const allOptionsSelected = computed(() => {
     key => selectedOptions.value[key]
   )
 })
+
+//menu state
+const groupedItems = computed(() => {
+  if (!menu.value?.items) return {}
+
+  return menu.value.items.reduce((groups, item) => {
+    const category = item.category || 'other'
+
+    if (!groups[category]) {
+      groups[category] = []
+    }
+
+    groups[category].push(item)
+    return groups
+  }, {})
+})
+
 
 
 const props = defineProps({
@@ -160,6 +184,10 @@ function confirmOptions() {
   activeItem.value = null
 }
 
+//categories
+function toggleCategory(category) {
+  openCategories.value[category] = !openCategories.value[category]
+}
 
 
 // Initialize
