@@ -75,6 +75,7 @@ body {
 .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
 
 .w-full { width: 100%; }
+.w-medium { width: 50%; }
 .max-w-sm { max-width: 400px; }
 .max-w-md { max-width: 768px; }
 .max-w-lg { max-width: 1024px; }
