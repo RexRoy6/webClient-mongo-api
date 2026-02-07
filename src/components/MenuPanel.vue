@@ -64,46 +64,14 @@
   </div>
 
   <!-- OPTIONS MODAL -->
-  <div v-if="showOptions" class="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40">
-    <div class="bg-white w-full md:max-w-md rounded-t-xl md:rounded-xl p-5">
+  <MenuOptions
+  :open="showOptions"
+  :item="activeItem"
+  v-model="selectedOptions"
+  @confirm="confirmOptions"
+  @close="showOptions = false"
+/>
 
-      <!-- Header -->
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold capitalize">
-          {{ activeItem.name }}
-        </h3>
-        <button class="text-gray-500" @click="showOptions = false">✕</button>
-      </div>
-
-      <!-- OPTIONS -->
-      <div class="space-y-4">
-        <div v-for="(option, key) in activeItem.options" :key="key">
-          <p class="font-medium capitalize mb-2">
-            {{ key }}
-          </p>
-
-          <div class="grid grid-cols-2 gap-2">
-            <button v-for="value in option.values" :key="value" class="btn btn-sm" :class="selectedOptions[key] === value
-              ? 'btn-primary'
-              : 'btn-secondary'" @click="selectedOptions[key] = value">
-              {{ value }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ACTIONS -->
-      <div class="mt-6 flex gap-3">
-        <button class="btn btn-primary flex-1" :disabled="!allOptionsSelected" @click="confirmOptions">
-          Add to Cart
-        </button>
-
-        <button class="btn btn-secondary" @click="showOptions = false">
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
 
 
 </template>
@@ -112,6 +80,7 @@ import { ref, onMounted } from 'vue'
 import api from '@/api/apiClient'
 import { useBusinessStore } from '@/stores/business'
 import { computed } from 'vue'
+import MenuOptions from '@/components/MenuOptions.vue'
 
 const business = useBusinessStore()
 const emit = defineEmits(['add-to-cart'])
