@@ -1,8 +1,7 @@
 <template>
-  <div
-    v-if="open && item"
-    class="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40"
-  >
+  <div v-if="open && item" class="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40"
+    @click.self="$emit('close')">
+
     <div class="bg-white w-full md:max-w-md rounded-t-xl md:rounded-xl p-5">
 
       <!-- Header -->
@@ -21,13 +20,8 @@
           </p>
 
           <div class="grid grid-cols-2 gap-2">
-            <button
-              v-for="value in option.values"
-              :key="value"
-              class="btn btn-sm"
-              :class="modelValue[key] === value ? 'btn-primary' : 'btn-secondary'"
-              @click="updateOption(key, value)"
-            >
+            <button v-for="value in option.values" :key="value" class="btn btn-sm"
+              :class="modelValue[key] === value ? 'btn-primary' : 'btn-secondary'" @click="updateOption(key, value)">
               {{ value }}
             </button>
           </div>
@@ -36,11 +30,7 @@
 
       <!-- ACTIONS -->
       <div class="mt-6 flex gap-3">
-        <button
-          class="btn btn-primary flex-1"
-          :disabled="!allOptionsSelected"
-          @click="$emit('confirm')"
-        >
+        <button class="btn btn-primary flex-1" :disabled="!allOptionsSelected" @click="$emit('confirm')">
           Add to Cart
         </button>
 
@@ -54,6 +44,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 
 const props = defineProps({
   open: Boolean,
@@ -76,4 +67,28 @@ const allOptionsSelected = computed(() => {
     key => props.modelValue[key]
   )
 })
+
+///handle esc key
+function handleKeydown(e) {
+  if (e.key === 'Escape') {
+    emit('close')
+  }
+}
+
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeydown)
+    } else {
+      window.removeEventListener('keydown', handleKeydown)
+    }
+  }
+)
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
+
+
 </script>
