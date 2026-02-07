@@ -127,10 +127,13 @@
                           <div class="order-summary space-y-2">
                             <!-- <strong>Name:</strong> {{ order.solicitud.name }} -->
                             <p><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
+
+                            <p v-if="order.solicitud.payment_method"> <strong class="text-lg">Payment method:</strong> {{ order.solicitud.payment_method }}</p>
                             <p v-if="order.solicitud.note">
                               <strong>Note:</strong> {{ order.solicitud.note }}
                             </p>
                             <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
+
                             <p><strong>Order ID:</strong> {{ order.uuid }}</p>
                             <!-- <p><strong>Created by:</strong> {{ order.created_by.substring(0, 8) }}...</p> -->
                           </div>
@@ -261,7 +264,7 @@
 
             <!-- CREATE MODE -->
             <template v-else>
-              <CreateOrderPanel v-model:note="orderNote" v-model:name_client="orderName"
+              <CreateOrderPanel v-model:note="orderNote" v-model:name_client="orderName" v-model:payment_method="orderPaymentMethod"
                 :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
             </template>
           </div>
@@ -330,6 +333,7 @@ const editCartTotal = computed(() =>
 const cart = ref([])
 const orderNote = ref('')
 const orderName = ref('')
+const orderPaymentMethod = ref('cash')
 
 
 // Status configuration
@@ -426,7 +430,8 @@ async function createOrder() {
         })),
         note: orderNote.value || undefined,
         name: orderName.value || undefined,
-        currency: 'mxn'
+        currency: 'mxn',
+        payment_method: orderPaymentMethod.value || 'cash',
       }
     }
 
@@ -440,6 +445,7 @@ async function createOrder() {
     cart.value = []
     orderNote.value = ''
     orderName.value = ''
+    orderPaymentMethod.value = 'cash'
 
     // refresh orders list
     fetchOrders()

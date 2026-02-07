@@ -167,6 +167,19 @@ body {
   background: var(--gray-300);
 }
 
+/* ===== buttons CreateOrderPanel===== */
+
+.btn-order {
+  min-height: 48px;
+  font-size: 1rem;
+}
+.btn-order:active {
+  transform: scale(0.98);
+}
+
+
+/* ===== buttons CreateOrderPanel ===== */
+
 /* ===== FORM STYLES ===== */
 .form-group {
   margin-bottom: var(--spacing-4);
