@@ -1,12 +1,16 @@
 <template>
-  <div v-if="open && item" class="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40"
+  <div v-if="open && item" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
     @click.self="$emit('close')">
 
-    <div class="bg-white w-full md:max-w-md rounded-t-xl md:rounded-xl p-5">
+
+    <div class="bg-white shadow-xl w-full max-w-md rounded-xl p-5">
+
+
+
 
       <!-- Header -->
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold capitalize">
+        <h3 class="text-lg font-semibold capitalize mb-2 text-gray-900">
           {{ item.name }}
         </h3>
         <button class="text-gray-500" @click="$emit('close')">✕</button>
@@ -15,15 +19,19 @@
       <!-- OPTIONS -->
       <div class="space-y-4">
         <div v-for="(option, key) in item.options" :key="key">
-          <p class="font-medium capitalize mb-2">
+          <p class="font-medium capitalize mb-2 text-gray-800">
+
             {{ key }}
           </p>
 
           <div class="grid grid-cols-2 gap-2">
-            <button v-for="value in option.values" :key="value" class="btn btn-sm"
-              :class="modelValue[key] === value ? 'btn-primary' : 'btn-secondary'" @click="updateOption(key, value)">
+            <button v-for="value in option.values" :key="value"
+              class="px-3 py-2 rounded-md text-sm font-medium border transition" :class="modelValue[key] === value
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200'" @click="updateOption(key, value)">
               {{ value }}
             </button>
+
           </div>
         </div>
       </div>
