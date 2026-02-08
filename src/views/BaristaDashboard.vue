@@ -283,12 +283,9 @@
                 v-model:payment_method="orderPaymentMethod" :disabled="cart.length === 0 || creatingOrder"
                 @submit="createOrder" />
             </template>
-          </div>
-
-
           <!-- create order -->
-
-
+           
+          </div>
         </div>
       </template>
     </div>

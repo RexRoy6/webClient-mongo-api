@@ -21,7 +21,8 @@ const emit = defineEmits([
   'add',
   'remove',
   'remove-all',
-  'clear'
+  'clear',
+  'ready'
 ])
 
 
@@ -69,13 +70,13 @@ const cartItemCount = computed(() =>
           <strong>{{ item.name }}</strong>
           <span>${{ item.unit_price * item.qty }}</span>
         </div>
-        
+
 
         <div v-if="item.options" class="text-xs text-gray-400">
-  <div v-for="(value, key) in item.options" :key="key">
-    {{ key }}: {{ value }}
-  </div>
-</div>
+          <div v-for="(value, key) in item.options" :key="key">
+            {{ key }}: {{ value }}
+          </div>
+        </div>
 
 
 
@@ -87,7 +88,7 @@ const cartItemCount = computed(() =>
               −
             </button>
 
-            
+
 
             <span class="text-lg font-semibold w-6 text-center">
               {{ item.qty }}
@@ -113,6 +114,10 @@ const cartItemCount = computed(() =>
       <div class="font-bold text-right mt-4 pt-3 border-t border-gray-700">
         Total: ${{ total }} MXN
       </div>
+
+      <button class="btn btn-success w-full mt-4" @click="emit('ready')">
+        ✅ Ready
+      </button>
 
     </template>
   </div>
