@@ -51,23 +51,31 @@
 
 
         <!-- ITEMS -->
-        <div v-if="openCategories[category]" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        <!-- ITEMS -->
+        <div v-if="openCategories[category]"
+          class="menu-items grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 mt-4">
           <div v-for="item in items" :key="item.name" class="menu-item card p-4">
-            <h4 class="font-medium capitalize">{{ item.name }}</h4>
+            <div class="menu-item-content">
+              <h4 class="font-medium capitalize">{{ item.name }}</h4>
 
-            <p class="price text-primary-blue font-bold text-lg mb-3">
-              ${{ item.price }} MXN
-            </p>
+              <p class="price text-primary-blue font-bold text-lg mb-3">
+                ${{ item.price }} MXN
+              </p>
 
-            <span v-if="item.options && Object.keys(item.options).length" class="text-xs text-gray-500">
-              Customizable
-            </span>
+              <span v-if="item.options && Object.keys(item.options).length" class="text-xs text-gray-500">
+                Customizable
+              </span>
 
-            <button class="btn btn-primary btn-sm w-full" @click="handleAdd(item)">
-              {{ props.mode === 'edit' ? 'Add to Order' : 'Add to Cart' }}
-            </button>
+              <button class="btn btn-primary btn-sm w-full" @click="handleAdd(item)">
+                {{ props.mode === 'edit' ? 'Add to Order' : 'Add to Cart' }}
+              </button>
+            </div>
           </div>
         </div>
+
+
+
+
       </div>
 
     </div>
