@@ -18,7 +18,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['submit', 'update:note', 'update:name_client', 'update:payment_method'])
+const emit = defineEmits(['submit',  'cancel', 'update:note', 'update:name_client', 'update:payment_method'])
 
 function submitOrder() {
   emit('submit')
@@ -85,5 +85,13 @@ function submitOrder() {
     <button class="btn btn-success w-full" :disabled="disabled" @click="submitOrder">
       Create Order
     </button>
+    <button
+  class="btn btn-secondary w-full mt-2"
+  @click="$emit('cancel')"
+>
+  ← Back to Cart
+</button>
+
   </div>
+  
 </template>

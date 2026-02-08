@@ -255,9 +255,17 @@
 
             <!-- CREATE MODE -->
             <template v-else>
-              <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
-                @remove-all="removeAllFromCart" @clear="clearCart" />
+              <CartPanel v-if="!isCreatingOrder" :cart="cart" :total="cartTotal" @add="addToCart"
+                @remove="removeFromCart" @remove-all="removeAllFromCart" @clear="clearCart"
+                @ready="isCreatingOrder = true" />
+
+              <CreateOrderPanel v-else v-model:note="orderNote" v-model:name_client="orderName"
+                v-model:payment_method="orderPaymentMethod" :disabled="cart.length === 0 || creatingOrder"
+                @submit="createOrder" @cancel="isCreatingOrder = false" />
             </template>
+
+
+
           </div>
           <!-- CART -->
           <!-- create order -->
@@ -276,15 +284,6 @@
                 </button>
               </div>
             </template>
-
-            <!-- CREATE MODE -->
-            <template v-else>
-              <CreateOrderPanel v-model:note="orderNote" v-model:name_client="orderName"
-                v-model:payment_method="orderPaymentMethod" :disabled="cart.length === 0 || creatingOrder"
-                @submit="createOrder" />
-            </template>
-          <!-- create order -->
-           
           </div>
         </div>
       </template>
@@ -347,6 +346,7 @@ const cart = ref([])
 const orderNote = ref('')
 const orderName = ref('')
 const orderPaymentMethod = ref('cash')
+const isCreatingOrder = ref(false)
 
 
 // Status configuration
