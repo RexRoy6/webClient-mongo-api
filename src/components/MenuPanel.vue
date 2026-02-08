@@ -38,14 +38,17 @@
 
       <div v-for="(items, category) in groupedItems" :key="category" class="category-block">
         <!-- CATEGORY HEADER -->
-        <button
-          class="btn btn-primary btn-sm w-medium"
-          @click="toggleCategory(category)">
-          <span>{{ category }}</span>
-          <span>
+        <button type="button" class="btn-order w-full md:w-auto flex items-center justify-between px-4"
+          :class="openCategories[category] ? 'btn-success' : 'btn-secondary-style'" @click="toggleCategory(category)">
+          <span class="capitalize font-semibold">
+            {{ category }}
+          </span>
+
+          <span class="text-lg font-bold">
             {{ openCategories[category] ? '−' : '+' }}
           </span>
         </button>
+
 
         <!-- ITEMS -->
         <div v-if="openCategories[category]" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">

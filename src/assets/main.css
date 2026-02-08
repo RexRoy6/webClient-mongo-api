@@ -167,7 +167,10 @@ body {
 .btn-secondary:hover:not(:disabled) {
   background: var(--gray-300);
 }
-
+.btn-secondary-style {
+  background: var( --primary-purple);
+  color: white;
+}
 /* ===== buttons CreateOrderPanel===== */
 
 .btn-order {
