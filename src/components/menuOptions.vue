@@ -3,14 +3,15 @@
     @click.self="$emit('close')">
 
 
-    <div class="bg-white shadow-xl w-full max-w-md rounded-xl p-5">
+    <div class="bg-gray-900 text-gray-100 shadow-xl w-full max-w-md rounded-xl p-5">
+
 
 
 
 
       <!-- Header -->
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold capitalize mb-2 text-gray-900">
+        <h3 class="text-lg font-semibold capitalize mb-2 text-gray-100">
           {{ item.name }}
         </h3>
         <button class="text-gray-500" @click="$emit('close')">✕</button>
@@ -19,7 +20,7 @@
       <!-- OPTIONS -->
       <div class="space-y-4">
         <div v-for="(option, key) in item.options" :key="key">
-          <p class="font-medium capitalize mb-2 text-gray-800">
+          <p class="font-medium capitalize mb-2 text-gray-100">
 
             {{ key }}
           </p>
