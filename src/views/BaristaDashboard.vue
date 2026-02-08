@@ -115,22 +115,45 @@
                         <div class="order-details grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                           <div class="order-items">
                             <h4 class="font-semibold mb-2">Items:</h4>
+
                             <div class="space-y-1">
-                              <div v-for="item in order.solicitud.items" :key="item.name"
+                              <div v-for="(item, idx) in order.solicitud.items" :key="idx"
                                 class="flex justify-between py-1 border-b border-gray-100 last:border-b-0">
-                                <span>{{ item.name }} × {{ item.qty }}</span>
-                                <span class="font-medium">${{ item.line_total }} MXN</span>
+                                <div>
+                                  <div class="font-medium">
+                                    {{ item.name }} × {{ item.qty }}
+                                  </div>
+
+                                  <!-- OPTIONS -->
+                                  <div v-if="item.options && Object.keys(item.options).length"
+                                    class="text-m text-gray-400 ml-2">
+                                    <div v-for="(value, key) in item.options" :key="key">
+                                      • {{ key }}: {{ value }}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <span class="font-medium">
+                                  ${{ item.line_total }} MXN
+                                </span>
                               </div>
                             </div>
+
+
+
                           </div>
 
                           <div class="order-summary space-y-2">
                             <!-- <strong>Name:</strong> {{ order.solicitud.name }} -->
                             <p><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
+
+                            <p v-if="order.solicitud.payment_method"> <strong class="text-lg">Payment method:</strong>
+                              {{ order.solicitud.payment_method }}</p>
                             <p v-if="order.solicitud.note">
                               <strong>Note:</strong> {{ order.solicitud.note }}
                             </p>
                             <p><strong>Menu:</strong> {{ order.solicitud.menu_key }}</p>
+
                             <p><strong>Order ID:</strong> {{ order.uuid }}</p>
                             <!-- <p><strong>Created by:</strong> {{ order.created_by.substring(0, 8) }}...</p> -->
                           </div>
@@ -219,16 +242,15 @@
           <div class="menu-scroll">
             <MenuPanel :key="editingOrder ? 'edit-menu' : 'create-menu'" :mode="editingOrder ? 'edit' : 'create'"
               @add-to-cart="handleAddFromMenu" />
-
-
-
           </div>
           <!-- MENU -->
 
-
-
           <!-- CART -->
           <div class="cart-scroll">
+
+            <div v-if="orderSuccess" class="mb-3 p-3 bg-green-100 text-green-800 rounded">
+              ✅ Order sent successfully. Ready for the next one!
+            </div>
             <!-- EDIT MODE -->
             <template v-if="editingOrder">
               <CartPanel title="Edit Order" :cart="editCart" :total="editCartTotal" @add="addToEditCart"
@@ -237,11 +259,16 @@
 
             <!-- CREATE MODE -->
             <template v-else>
-              <CartPanel :cart="cart" :total="cartTotal" @add="addToCart" @remove="removeFromCart"
-                @remove-all="removeAllFromCart" @clear="clearCart" />
+              <CartPanel v-if="!isCreatingOrder" :cart="cart" :total="cartTotal" @add="addToCart"
+                @remove="removeFromCart" @remove-all="removeAllFromCart" @clear="clearCart"
+                @ready="isCreatingOrder = true" />
+
+              <CreateOrderPanel v-else v-model:note="orderNote" v-model:name_client="orderName"
+                v-model:payment_method="orderPaymentMethod" :disabled="cart.length === 0 || creatingOrder"
+                @submit="createOrder" @cancel="isCreatingOrder = false" />
             </template>
           </div>
-          <!-- CART -->
+          <!-- CART end-->
           <!-- create order -->
           <!-- FOOTER ACTIONS -->
           <div class="mt-4">
@@ -258,18 +285,7 @@
                 </button>
               </div>
             </template>
-
-            <!-- CREATE MODE -->
-            <template v-else>
-              <CreateOrderPanel v-model:note="orderNote" v-model:name_client="orderName"
-                :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
-            </template>
           </div>
-
-
-          <!-- create order -->
-
-
         </div>
       </template>
     </div>
@@ -330,6 +346,10 @@ const editCartTotal = computed(() =>
 const cart = ref([])
 const orderNote = ref('')
 const orderName = ref('')
+const orderPaymentMethod = ref('cash')
+const isCreatingOrder = ref(false)
+const orderSuccess = ref(false)
+
 
 
 // Status configuration
@@ -372,8 +392,8 @@ async function fetchOrders() {
     if (response.status >= 200 && response.status < 300) {
       orders.value = response.data.orders || []
       // Optional: You might want to store other data too
-      //console.log('Full response:', response.data)
-      //console.log('Orders:', orders.value)
+      //console.log('Full response from api:', response.data)
+      //console.log('Orders from api:', orders.value)
 
     } else {
       throw new Error(`HTTP ${response.status}: Failed to fetch orders`)
@@ -410,7 +430,7 @@ async function fetchOrders() {
   }
 }
 
-//
+//funcion que hace el post de la order a ala api
 async function createOrder() {
   if (!cart.value.length) return
 
@@ -422,24 +442,38 @@ async function createOrder() {
       solicitud: {
         items: cart.value.map(i => ({
           name: i.name,
-          qty: i.qty
-        })),
+          qty: i.qty,
+          options: JSON.parse(JSON.stringify(i.options || {}))
+        }))
+        ,
         note: orderNote.value || undefined,
         name: orderName.value || undefined,
-        currency: 'mxn'
+        currency: 'mxn',
+        payment_method: orderPaymentMethod.value || 'cash',
       }
     }
 
+
+    //console.log('sent order:', payload)
     await api.post('/api/orders', payload, {
       headers: {
         'X-Business-Code': business.businessCode
       }
     })
+    //alert('✅ Order sent to kitchen successfully!')
+    orderSuccess.value = true
+    setTimeout(() => {
+      orderSuccess.value = false
+    }, 3000)
+
+
 
     // clear cart after success
     cart.value = []
     orderNote.value = ''
     orderName.value = ''
+    orderPaymentMethod.value = 'cash'
+    isCreatingOrder.value = false
 
     // refresh orders list
     fetchOrders()
@@ -538,7 +572,16 @@ const filteredOrders = computed(() => {
   return orders.value.filter(order => order.current_status === filterStatus.value)
 })
 function addToCart(item) {
-  const existing = cart.value.find(i => i.name === item.name)
+  // normalize data
+  const options = item.selectedOptions ?? item.options ?? {}
+  const unitPrice = item.price ?? item.unit_price
+
+  const sig = JSON.stringify(options)
+
+  const existing = cart.value.find(i =>
+    i.name === item.name &&
+    JSON.stringify(i.options || {}) === sig
+  )
 
   if (existing) {
     existing.qty++
@@ -546,13 +589,22 @@ function addToCart(item) {
     cart.value.push({
       name: item.name,
       qty: 1,
-      unit_price: item.unit_price ?? item.price
+      unit_price: unitPrice,
+      options
     })
   }
 }
 
-function removeFromCart(name) {
-  const index = cart.value.findIndex(i => i.name === name)
+
+
+function removeFromCart(item) {
+  const sig = JSON.stringify(item.options || {})
+
+  const index = cart.value.findIndex(i =>
+    i.name === item.name &&
+    JSON.stringify(i.options || {}) === sig
+  )
+
   if (index !== -1) {
     cart.value[index].qty > 1
       ? cart.value[index].qty--
@@ -560,9 +612,18 @@ function removeFromCart(name) {
   }
 }
 
-function removeAllFromCart(name) {
-  cart.value = cart.value.filter(i => i.name !== name)
+
+function removeAllFromCart(item) {
+  const sig = JSON.stringify(item.options || {})
+
+  cart.value = cart.value.filter(i =>
+    !(
+      i.name === item.name &&
+      JSON.stringify(i.options || {}) === sig
+    )
+  )
 }
+
 
 function clearCart() {
   cart.value = []
@@ -659,13 +720,13 @@ function cancelEdit() {
   activeView.value = 'orders'
 }
 function handleAddFromMenu(item) {
-
   if (editingOrder.value) {
     addToEditCart(item)
   } else {
     addToCart(item)
   }
 }
+
 function removeAllFromEditCart(name) {
   editCart.value = editCart.value.filter(i => i.name !== name)
 }

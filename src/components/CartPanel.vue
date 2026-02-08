@@ -21,8 +21,16 @@ const emit = defineEmits([
   'add',
   'remove',
   'remove-all',
-  'clear'
+  'clear',
+  'ready'
 ])
+
+
+function itemKey(item) {
+  return item.name + JSON.stringify(item.options || {})
+}
+
+
 
 const cartItemCount = computed(() =>
   props.cart.reduce((sum, i) => sum + i.qty, 0)
@@ -56,20 +64,31 @@ const cartItemCount = computed(() =>
 
     <!-- CART ITEMS -->
     <template v-else>
-      <div v-for="item in cart" :key="item.name" class="mb-4 pb-4 border-b border-gray-700 last:border-b-0">
+      <div v-for="item in cart" :key="itemKey(item)" class="mb-4 pb-4 border-b border-gray-700 last:border-b-0">
 
         <div class="flex justify-between">
           <strong>{{ item.name }}</strong>
           <span>${{ item.unit_price * item.qty }}</span>
         </div>
 
+
+        <div v-if="item.options" class="text-xs text-gray-400">
+          <div v-for="(value, key) in item.options" :key="key">
+            {{ key }}: {{ value }}
+          </div>
+        </div>
+
+
+
         <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <!-- Qty controls -->
 
           <div class="flex items-center gap-3">
-            <button class="btn btn-sm px-4 py-2 text-lg font-bold" @click="emit('remove', item.name)">
+            <button class="btn btn-sm px-4 py-2 text-lg font-bold" @click="emit('remove', item)">
               −
             </button>
+
+
 
             <span class="text-lg font-semibold w-6 text-center">
               {{ item.qty }}
@@ -82,7 +101,7 @@ const cartItemCount = computed(() =>
 
 
           <!-- Remove button (below) -->
-          <button class="text-xs text-red-400 hover:text-red-300 underline" @click="emit('remove-all', item.name)">
+          <button class="text-xs text-red-400 hover:text-red-300 underline" @click="emit('remove-all', item)">
             Remove
           </button>
 
@@ -95,6 +114,10 @@ const cartItemCount = computed(() =>
       <div class="font-bold text-right mt-4 pt-3 border-t border-gray-700">
         Total: ${{ total }} MXN
       </div>
+
+      <button class="btn btn-success w-full mt-4" @click="emit('ready')">
+        ✅ Ready
+      </button>
 
     </template>
   </div>
