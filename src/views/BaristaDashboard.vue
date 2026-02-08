@@ -119,6 +119,7 @@
                               <div v-for="item in order.solicitud.items" :key="item.name"
                                 class="flex justify-between py-1 border-b border-gray-100 last:border-b-0">
                                 <span>{{ item.name }} × {{ item.qty }}</span>
+                                <span>{{ order }} </span>
                                 <span class="font-medium">${{ item.line_total }} MXN</span>
                               </div>
                             </div>
@@ -222,13 +223,8 @@
           <div class="menu-scroll">
             <MenuPanel :key="editingOrder ? 'edit-menu' : 'create-menu'" :mode="editingOrder ? 'edit' : 'create'"
               @add-to-cart="handleAddFromMenu" />
-
-
-
           </div>
           <!-- MENU -->
-
-
 
           <!-- CART -->
           <div class="cart-scroll">
@@ -565,8 +561,14 @@ function addToCart(item) {
 }
 
 
-function removeFromCart(name) {
-  const index = cart.value.findIndex(i => i.name === name)
+function removeFromCart(item) {
+  const sig = JSON.stringify(item.options || {})
+
+  const index = cart.value.findIndex(i =>
+    i.name === item.name &&
+    JSON.stringify(i.options || {}) === sig
+  )
+
   if (index !== -1) {
     cart.value[index].qty > 1
       ? cart.value[index].qty--
@@ -574,9 +576,18 @@ function removeFromCart(name) {
   }
 }
 
-function removeAllFromCart(name) {
-  cart.value = cart.value.filter(i => i.name !== name)
+
+function removeAllFromCart(item) {
+  const sig = JSON.stringify(item.options || {})
+
+  cart.value = cart.value.filter(i =>
+    !(
+      i.name === item.name &&
+      JSON.stringify(i.options || {}) === sig
+    )
+  )
 }
+
 
 function clearCart() {
   cart.value = []

@@ -24,6 +24,13 @@ const emit = defineEmits([
   'clear'
 ])
 
+
+function itemKey(item) {
+  return item.name + JSON.stringify(item.options || {})
+}
+
+
+
 const cartItemCount = computed(() =>
   props.cart.reduce((sum, i) => sum + i.qty, 0)
 )
@@ -56,7 +63,7 @@ const cartItemCount = computed(() =>
 
     <!-- CART ITEMS -->
     <template v-else>
-      <div v-for="item in cart" :key="item.name" class="mb-4 pb-4 border-b border-gray-700 last:border-b-0">
+      <div v-for="item in cart" :key="itemKey(item)" class="mb-4 pb-4 border-b border-gray-700 last:border-b-0">
 
         <div class="flex justify-between">
           <strong>{{ item.name }}</strong>
@@ -76,9 +83,11 @@ const cartItemCount = computed(() =>
           <!-- Qty controls -->
 
           <div class="flex items-center gap-3">
-            <button class="btn btn-sm px-4 py-2 text-lg font-bold" @click="emit('remove', item.name)">
+            <button class="btn btn-sm px-4 py-2 text-lg font-bold" @click="emit('remove', item)">
               −
             </button>
+
+            
 
             <span class="text-lg font-semibold w-6 text-center">
               {{ item.qty }}
@@ -91,7 +100,7 @@ const cartItemCount = computed(() =>
 
 
           <!-- Remove button (below) -->
-          <button class="text-xs text-red-400 hover:text-red-300 underline" @click="emit('remove-all', item.name)">
+          <button class="text-xs text-red-400 hover:text-red-300 underline" @click="emit('remove-all', item)">
             Remove
           </button>
 
