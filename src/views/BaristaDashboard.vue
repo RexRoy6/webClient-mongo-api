@@ -129,7 +129,8 @@
                             <!-- <strong>Name:</strong> {{ order.solicitud.name }} -->
                             <p><strong>Total:</strong> ${{ order.solicitud.total }} MXN</p>
 
-                            <p v-if="order.solicitud.payment_method"> <strong class="text-lg">Payment method:</strong> {{ order.solicitud.payment_method }}</p>
+                            <p v-if="order.solicitud.payment_method"> <strong class="text-lg">Payment method:</strong>
+                              {{ order.solicitud.payment_method }}</p>
                             <p v-if="order.solicitud.note">
                               <strong>Note:</strong> {{ order.solicitud.note }}
                             </p>
@@ -260,8 +261,9 @@
 
             <!-- CREATE MODE -->
             <template v-else>
-              <CreateOrderPanel v-model:note="orderNote" v-model:name_client="orderName" v-model:payment_method="orderPaymentMethod"
-                :disabled="cart.length === 0 || creatingOrder" @submit="createOrder" />
+              <CreateOrderPanel v-model:note="orderNote" v-model:name_client="orderName"
+                v-model:payment_method="orderPaymentMethod" :disabled="cart.length === 0 || creatingOrder"
+                @submit="createOrder" />
             </template>
           </div>
 
@@ -541,11 +543,15 @@ const filteredOrders = computed(() => {
   return orders.value.filter(order => order.current_status === filterStatus.value)
 })
 function addToCart(item) {
-  const signature = JSON.stringify(item.selectedOptions || {})
+  // normalize data
+  const options = item.selectedOptions ?? item.options ?? {}
+  const unitPrice = item.price ?? item.unit_price
+
+  const sig = JSON.stringify(options)
 
   const existing = cart.value.find(i =>
     i.name === item.name &&
-    JSON.stringify(i.options || {}) === signature
+    JSON.stringify(i.options || {}) === sig
   )
 
   if (existing) {
@@ -554,11 +560,12 @@ function addToCart(item) {
     cart.value.push({
       name: item.name,
       qty: 1,
-      unit_price: item.price,
-      options: item.selectedOptions || {}
+      unit_price: unitPrice,
+      options
     })
   }
 }
+
 
 
 function removeFromCart(item) {
