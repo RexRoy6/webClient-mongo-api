@@ -39,7 +39,7 @@
       <div v-for="(items, category) in groupedItems" :key="category" class="category-block">
         <!-- CATEGORY HEADER -->
         <button type="button" class="btn-order w-full md:w-auto flex items-center justify-between px-4"
-          :class="openCategories[category] ? 'btn-success' : 'btn-secondary-style'" @click="toggleCategory(category)">
+          :class="openCategories[category] ? 'btn-success' : 'btn-secondary'" @click="toggleCategory(category)">
           <span class="capitalize font-semibold">
             {{ category }}
           </span>
