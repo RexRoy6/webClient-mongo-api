@@ -168,7 +168,7 @@ body {
   background: var(--gray-300);
 }
 .btn-secondary-style {
-  background: var( --primary-purple);
+  background: var(--primary-blue);
   color: white;
 }
 /* ===== buttons CreateOrderPanel===== */
