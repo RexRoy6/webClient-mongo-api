@@ -95,7 +95,7 @@ import api from '@/api/apiClient'
 import { useBusinessStore } from '@/stores/business'
 import { computed } from 'vue'
 import MenuOptions from '@/components/MenuOptions.vue'
-
+//check import
 const business = useBusinessStore()
 const emit = defineEmits(['add-to-cart'])
 
