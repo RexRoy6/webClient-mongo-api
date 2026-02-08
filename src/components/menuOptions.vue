@@ -32,7 +32,6 @@
                 : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200'" @click="updateOption(key, value)">
               {{ value }}
             </button>
-vca
           </div>
         </div>
       </div>

@@ -115,14 +115,32 @@
                         <div class="order-details grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                           <div class="order-items">
                             <h4 class="font-semibold mb-2">Items:</h4>
+
                             <div class="space-y-1">
-                              <div v-for="item in order.solicitud.items" :key="item.name"
+                              <div v-for="(item, idx) in order.solicitud.items" :key="idx"
                                 class="flex justify-between py-1 border-b border-gray-100 last:border-b-0">
-                                <span>{{ item.name }} × {{ item.qty }}</span>
-                                <span>{{ order }} </span>
-                                <span class="font-medium">${{ item.line_total }} MXN</span>
+                                <div>
+                                  <div class="font-medium">
+                                    {{ item.name }} × {{ item.qty }}
+                                  </div>
+
+                                  <!-- OPTIONS -->
+                                  <div v-if="item.options && Object.keys(item.options).length"
+                                    class="text-m text-gray-400 ml-2">
+                                    <div v-for="(value, key) in item.options" :key="key">
+                                      • {{ key }}: {{ value }}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <span class="font-medium">
+                                  ${{ item.line_total }} MXN
+                                </span>
                               </div>
                             </div>
+
+
+
                           </div>
 
                           <div class="order-summary space-y-2">
@@ -374,8 +392,8 @@ async function fetchOrders() {
     if (response.status >= 200 && response.status < 300) {
       orders.value = response.data.orders || []
       // Optional: You might want to store other data too
-      //console.log('Full response:', response.data)
-      //console.log('Orders:', orders.value)
+      //console.log('Full response from api:', response.data)
+      //console.log('Orders from api:', orders.value)
 
     } else {
       throw new Error(`HTTP ${response.status}: Failed to fetch orders`)
@@ -412,7 +430,7 @@ async function fetchOrders() {
   }
 }
 
-//
+//funcion que hace el post de la order a ala api
 async function createOrder() {
   if (!cart.value.length) return
 
@@ -425,8 +443,9 @@ async function createOrder() {
         items: cart.value.map(i => ({
           name: i.name,
           qty: i.qty,
-          options: i.options
-        })),
+          options: JSON.parse(JSON.stringify(i.options || {}))
+        }))
+        ,
         note: orderNote.value || undefined,
         name: orderName.value || undefined,
         currency: 'mxn',
@@ -434,6 +453,8 @@ async function createOrder() {
       }
     }
 
+
+    //console.log('sent order:', payload)
     await api.post('/api/orders', payload, {
       headers: {
         'X-Business-Code': business.businessCode
