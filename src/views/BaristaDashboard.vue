@@ -247,6 +247,10 @@
 
           <!-- CART -->
           <div class="cart-scroll">
+
+            <div v-if="orderSuccess" class="mb-3 p-3 bg-green-100 text-green-800 rounded">
+              ✅ Order sent successfully. Ready for the next one!
+            </div>
             <!-- EDIT MODE -->
             <template v-if="editingOrder">
               <CartPanel title="Edit Order" :cart="editCart" :total="editCartTotal" @add="addToEditCart"
@@ -263,11 +267,8 @@
                 v-model:payment_method="orderPaymentMethod" :disabled="cart.length === 0 || creatingOrder"
                 @submit="createOrder" @cancel="isCreatingOrder = false" />
             </template>
-
-
-
           </div>
-          <!-- CART -->
+          <!-- CART end-->
           <!-- create order -->
           <!-- FOOTER ACTIONS -->
           <div class="mt-4">
@@ -347,6 +348,8 @@ const orderNote = ref('')
 const orderName = ref('')
 const orderPaymentMethod = ref('cash')
 const isCreatingOrder = ref(false)
+const orderSuccess = ref(false)
+
 
 
 // Status configuration
@@ -457,12 +460,20 @@ async function createOrder() {
         'X-Business-Code': business.businessCode
       }
     })
+    //alert('✅ Order sent to kitchen successfully!')
+    orderSuccess.value = true
+    setTimeout(() => {
+      orderSuccess.value = false
+    }, 3000)
+
+
 
     // clear cart after success
     cart.value = []
     orderNote.value = ''
     orderName.value = ''
     orderPaymentMethod.value = 'cash'
+    isCreatingOrder.value = false
 
     // refresh orders list
     fetchOrders()
