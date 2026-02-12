@@ -654,19 +654,27 @@ function startEditOrder(order) {
 
 
 function addToEditCart(item) {
-  const existing = editCart.value.find(i => itemKey(i) === itemKey(item))
+  // ⭐ normalize options exactly like create cart
+  const options = item.selectedOptions ?? item.options ?? {}
+
+  const normalizedItem = {
+    name: item.name,
+    unit_price: item.unit_price ?? item.price,
+    options
+  }
+
+  const existing = editCart.value.find(i => itemKey(i) === itemKey(normalizedItem))
 
   if (existing) {
     existing.qty++
   } else {
     editCart.value.push({
-      name: item.name,
-      qty: 1,
-      unit_price: item.unit_price ?? item.price,
-      options: item.options || {}
+      ...normalizedItem,
+      qty: 1
     })
   }
 }
+
 function removeFromEditCart(item) {
   const index = editCart.value.findIndex(i => itemKey(i) === itemKey(item))
 
