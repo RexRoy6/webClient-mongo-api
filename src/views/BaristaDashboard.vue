@@ -644,10 +644,11 @@ function startEditOrder(order) {
   editCart.value = order.solicitud.items.map(i => ({
     name: i.name,
     qty: i.qty,
-    unit_price: i.unit_price ?? 0
+    unit_price: i.unit_price ?? 0,
+    options: i.options || {}   // ⭐ REQUIRED
   }))
 
-  activeView.value = 'cart' // reuse Cart/Menu view
+  activeView.value = 'cart'
 }
 
 
