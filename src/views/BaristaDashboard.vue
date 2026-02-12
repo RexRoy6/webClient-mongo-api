@@ -649,8 +649,11 @@ function startEditOrder(order) {
 
   activeView.value = 'cart' // reuse Cart/Menu view
 }
+
+
+
 function addToEditCart(item) {
-  const existing = editCart.value.find(i => i.name === item.name)
+  const existing = editCart.value.find(i => itemKey(i) === itemKey(item))
 
   if (existing) {
     existing.qty++
@@ -658,21 +661,25 @@ function addToEditCart(item) {
     editCart.value.push({
       name: item.name,
       qty: 1,
-      unit_price: item.unit_price ?? item.price
+      unit_price: item.unit_price ?? item.price,
+      options: item.options || {}
     })
   }
 }
+function removeFromEditCart(item) {
+  const index = editCart.value.findIndex(i => itemKey(i) === itemKey(item))
 
-
-
-function removeFromEditCart(name) {
-  const index = editCart.value.findIndex(i => i.name === name)
   if (index !== -1) {
     editCart.value[index].qty > 1
       ? editCart.value[index].qty--
       : editCart.value.splice(index, 1)
   }
 }
+
+function itemKey(item) {
+  return item.name + JSON.stringify(item.options || {})
+}
+
 
 async function saveOrderEdits() {
   if (!editingOrder.value) return
