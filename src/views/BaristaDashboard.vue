@@ -745,9 +745,10 @@ function handleAddFromMenu(item) {
   }
 }
 
-function removeAllFromEditCart(name) {
-  editCart.value = editCart.value.filter(i => i.name !== name)
+function removeAllFromEditCart(item) {
+  editCart.value = editCart.value.filter(i => itemKey(i) !== itemKey(item))
 }
+
 
 
 
