@@ -74,9 +74,10 @@ const cartItemCount = computed(() =>
 
         <div v-if="item.options && Object.keys(item.options).length" class="text-xs text-gray-400">
           <div v-for="(value, key) in item.options" :key="key">
-            {{ key }}: {{ typeof value === 'object' ? value.value || '' : value }}
+            {{ key }}: {{ value }}
           </div>
         </div>
+
 
 
 
