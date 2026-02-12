@@ -694,8 +694,10 @@ async function saveOrderEdits() {
         order_uuid: editingOrder.value.uuid,
         items: editCart.value.map(i => ({
           name: i.name,
-          qty: i.qty
-        })),
+          qty: i.qty,
+          options: i.options || {}   // options
+        }))
+        ,
         note: editNote.value || undefined
       },
       {
