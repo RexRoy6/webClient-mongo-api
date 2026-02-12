@@ -350,6 +350,12 @@ const orderPaymentMethod = ref('cash')
 const isCreatingOrder = ref(false)
 const orderSuccess = ref(false)
 
+//edit cart
+const activeItem = ref(null)
+const selectedOptions = ref({})
+const showOptions = ref(false)
+
+
 
 
 // Status configuration
@@ -642,30 +648,33 @@ function startEditOrder(order) {
   editNote.value = order.solicitud.note || ''
 
   editCart.value = order.solicitud.items.map(i => ({
-    name: i.name,
-    qty: i.qty,
-    unit_price: i.unit_price ?? 0
-  }))
+  name: i.name,
+  qty: i.qty,
+  unit_price: i.unit_price ?? 0,
+  options: i.options || {}
+}))
 
   activeView.value = 'cart' // reuse Cart/Menu view
 }
 
 
-
 function addToEditCart(item) {
-  const existing = editCart.value.find(i => itemKey(i) === itemKey(item))
+  const cartItem = {
+    name: item.name,
+    qty: 1,
+    unit_price: item.unit_price ?? item.price,
+    options: item.selectedOptions || {}
+  }
+
+  const existing = editCart.value.find(i => itemKey(i) === itemKey(cartItem))
 
   if (existing) {
     existing.qty++
   } else {
-    editCart.value.push({
-      name: item.name,
-      qty: 1,
-      unit_price: item.unit_price ?? item.price,
-      options: item.options || {}
-    })
+    editCart.value.push(cartItem)
   }
 }
+
 function removeFromEditCart(item) {
   const index = editCart.value.findIndex(i => itemKey(i) === itemKey(item))
 
@@ -675,6 +684,11 @@ function removeFromEditCart(item) {
       : editCart.value.splice(index, 1)
   }
 }
+
+function removeAllFromEditCart(item) {
+  editCart.value = editCart.value.filter(i => itemKey(i) !== itemKey(item))
+}
+
 
 function itemKey(item) {
   return item.name + JSON.stringify(item.options || {})
@@ -727,16 +741,35 @@ function cancelEdit() {
   activeView.value = 'orders'
 }
 function handleAddFromMenu(item) {
+  activeItem.value = item
+  selectedOptions.value = {}
+
+  if (item.options && Object.keys(item.options).length > 0) {
+    showOptions.value = true
+  } else {
+    confirmAddToCart()
+  }
+}
+
+
+function confirmAddToCart() {
+  const item = {
+    name: activeItem.value.name,
+    price: activeItem.value.price,
+    unit_price: activeItem.value.unit_price,
+    selectedOptions: { ...selectedOptions.value }
+  }
+
   if (editingOrder.value) {
     addToEditCart(item)
   } else {
     addToCart(item)
   }
+
+  showOptions.value = false
 }
 
-function removeAllFromEditCart(name) {
-  editCart.value = editCart.value.filter(i => i.name !== name)
-}
+
 
 
 
