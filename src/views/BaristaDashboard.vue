@@ -350,6 +350,12 @@ const orderPaymentMethod = ref('cash')
 const isCreatingOrder = ref(false)
 const orderSuccess = ref(false)
 
+//edit cart
+const activeItem = ref(null)
+const selectedOptions = ref({})
+const showOptions = ref(false)
+
+
 
 
 // Status configuration
@@ -652,7 +658,6 @@ function startEditOrder(order) {
 }
 
 
-
 function addToEditCart(item) {
   // ⭐ normalize options exactly like create cart
   const options = item.selectedOptions ?? item.options ?? {}
@@ -684,6 +689,11 @@ function removeFromEditCart(item) {
       : editCart.value.splice(index, 1)
   }
 }
+
+function removeAllFromEditCart(item) {
+  editCart.value = editCart.value.filter(i => itemKey(i) !== itemKey(item))
+}
+
 
 function itemKey(item) {
   return item.name + JSON.stringify(item.options || {})
@@ -738,12 +748,30 @@ function cancelEdit() {
   activeView.value = 'orders'
 }
 function handleAddFromMenu(item) {
+  activeItem.value = item
+  selectedOptions.value = {}
+
+  if (item.options && Object.keys(item.options).length > 0) {
+    showOptions.value = true
+  } else {
+    confirmAddToCart()
+  }
+}
+
+
+function confirmAddToCart() {
+  const item = {
+    name: activeItem.value.name,
+    price: activeItem.value.price,
+    unit_price: activeItem.value.unit_price,
+    selectedOptions: { ...selectedOptions.value }
+  }
+
   if (editingOrder.value) {
     addToEditCart(item)
   } else {
     addToCart(item)
   }
-}
 
 function removeAllFromEditCart(item) {
   editCart.value = editCart.value.filter(i => itemKey(i) !== itemKey(item))
